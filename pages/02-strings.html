@@ -1,0 +1,631 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Strings</title><link rel="stylesheet" href="../assets/style.css"></head><body>
+<header class="top"><a href="../index.html">&#8962; Index</a><span class="sp"></span><strong>Strings</strong></header>
+<div class="layout"><nav class="toc"><a href="#reversing-strings-0">Reversing Strings</a><a href="#string-compression-transformation-1">String Compression &amp; Transformation</a><a href="#searching-parsing-counting-2">Searching, Parsing &amp; Counting</a><a href="#anagrams-word-comparison-3">Anagrams &amp; Word Comparison</a><a href="#string-dynamic-programming-4">String Dynamic Programming</a></nav><main><h1 class="title">Java Programming Interview Questions — Document 2</h1><p class="sub">String Manipulation</p><p>This document covers all the String-manipulation coding questions from the supplied question list: reversing, compressing, rotating, and parsing strings, checking for anagrams and balanced brackets, capitalizing words, counting substring occurrences, and classic string-based dynamic programming problems (longest common subsequence, edit distance).</p>
+<p>This is Document 2 of a multi-document set covering all 158 questions from the original spreadsheet. Duplicate questions from the original list (e.g. &quot;reverse a string&quot; and &quot;occurrences of substring&quot; each appeared more than once) have been consolidated into a single, thorough answer.</p>
+<h1 id="reversing-strings-0">Reversing Strings</h1>
+<p class="question"><strong>Q1. Reverse a string. (Asked multiple times, including &quot;without using StringBuilder&quot; and &quot;using recursion&quot; variants.)</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/reverse-string/" target="_blank" rel="noopener">Reverse String &#8599;</a></span></p>
+<p class="problem">Problem statement: Given a string, return a new string containing the same characters in reverse order. Example: reverseUsingBuilder(&quot;hello&quot;) should return &quot;olleh&quot;.</p>
+<h2 id="using-stringbuilder-simplest-idiomatic-solution-1">Using StringBuilder (simplest, idiomatic solution)</h2>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">StringReverser</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="t">String</span> reverseUsingBuilder(<span class="t">String</span> inputText) {
+        <span class="k">return</span> <span class="k">new</span> <span class="t">StringBuilder</span>(inputText).reverse().toString();
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(reverseUsingBuilder(<span class="s">&quot;hello&quot;</span>)); <span class="c">// &quot;olleh&quot;</span>
+    }
+}</code></pre>
+<h2 id="without-using-stringbuilder-manual-two-pointer-swap-1">Without using StringBuilder (manual two-pointer swap)</h2>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">StringReverser</span> {
+ 
+    <span class="c">// Converts the string to a character array, then swaps characters from</span>
+    <span class="c">// opposite ends moving inward -- avoids relying on StringBuilder.reverse()</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="t">String</span> reverseWithoutBuilder(<span class="t">String</span> inputText) {
+        <span class="k">char</span>[] characterArray = inputText.toCharArray();
+        <span class="k">int</span> leftIndex = <span class="n">0</span>;
+        <span class="k">int</span> rightIndex = characterArray.length - <span class="n">1</span>;
+ 
+        <span class="k">while</span> (leftIndex &lt; rightIndex) {
+            <span class="k">char</span> temporaryCharacter = characterArray[leftIndex];
+            characterArray[leftIndex] = characterArray[rightIndex];
+            characterArray[rightIndex] = temporaryCharacter;
+            leftIndex++;
+            rightIndex--;
+        }
+        <span class="k">return</span> <span class="k">new</span> <span class="t">String</span>(characterArray);
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(reverseWithoutBuilder(<span class="s">&quot;hello&quot;</span>)); <span class="c">// &quot;olleh&quot;</span>
+    }
+}</code></pre>
+<h2 id="using-recursion-1">Using recursion</h2>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">StringReverser</span> {
+ 
+    <span class="c">// Recursively reverses a string: the reverse of &quot;firstChar + rest&quot; is</span>
+    <span class="c">// &quot;reverse(rest) + firstChar&quot;</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="t">String</span> reverseUsingRecursion(<span class="t">String</span> inputText) {
+        <span class="k">if</span> (inputText.isEmpty() || inputText.length() == <span class="n">1</span>) {
+            <span class="k">return</span> inputText; <span class="c">// base case: an empty or single-character string is its own reverse</span>
+        }
+        <span class="k">char</span> firstCharacter = inputText.charAt(<span class="n">0</span>);
+        <span class="t">String</span> remainingCharacters = inputText.substring(<span class="n">1</span>);
+ 
+        <span class="c">// reverse everything AFTER the first character, then append the</span>
+        <span class="c">// first character onto the very end</span>
+        <span class="k">return</span> reverseUsingRecursion(remainingCharacters) + firstCharacter;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(reverseUsingRecursion(<span class="s">&quot;hello&quot;</span>)); <span class="c">// &quot;olleh&quot;</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time for the StringBuilder and manual-swap versions, O(1) extra space beyond the result (the manual-swap version reverses in place on the character array). The recursive version is O(n) time but O(n) extra space, due to both the call-stack depth and the fact that String concatenation at each recursive step creates new String objects.</strong></p>
+<p class="question"><strong>Q2. Reverse the order of words in a sentence.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/reverse-words-in-a-string/" target="_blank" rel="noopener">Reverse Words In A String &#8599;</a></span></p>
+<p class="problem">Problem statement: Given a sentence, reverse the ORDER of its words (not the characters within each word). Example: reverseWordOrder(&quot;The quick brown fox&quot;) should return &quot;fox brown quick The&quot;.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">SentenceWordReverser</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="t">String</span> reverseWordOrder(<span class="t">String</span> inputSentence) {
+        <span class="c">// split on one-or-more whitespace characters, so extra spaces don&#x27;t</span>
+        <span class="c">// produce empty &quot;words&quot; in the result</span>
+        <span class="t">String</span>[] individualWords = inputSentence.trim().split(<span class="s">&quot;\\s+&quot;</span>);
+ 
+        <span class="t">StringBuilder</span> reversedSentenceBuilder = <span class="k">new</span> <span class="t">StringBuilder</span>();
+        <span class="k">for</span> (<span class="k">int</span> wordIndex = individualWords.length - <span class="n">1</span>; wordIndex &gt;= <span class="n">0</span>; wordIndex--) {
+            reversedSentenceBuilder.append(individualWords[wordIndex]);
+            <span class="k">if</span> (wordIndex &gt; <span class="n">0</span>) {
+                reversedSentenceBuilder.append(<span class="s">&quot; &quot;</span>);
+            }
+        }
+        <span class="k">return</span> reversedSentenceBuilder.toString();
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(reverseWordOrder(<span class="s">&quot;The quick brown fox&quot;</span>));
+        <span class="c">// &quot;fox brown quick The&quot;</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time, where n is the total length of the sentence. O(n) extra space for the word array and the result.</strong></p>
+<p class="question"><strong>Q3. Reverse each word in a sentence and connect them using &quot;-&quot;.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/reverse-words-in-a-string-iii/" target="_blank" rel="noopener">Reverse Words In A String Iii &#8599;</a></span></p>
+<p class="problem">Problem statement: Given a sentence, reverse the CHARACTERS within each individual word (keeping the word order unchanged), then join the resulting words together using a hyphen (&quot;-&quot;) instead of spaces. Example: reverseEachWordAndJoin(&quot;The quick brown&quot;) should return &quot;ehT-kciuq-nworb&quot;.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">WordCharacterReverser</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="t">String</span> reverseEachWordAndJoin(<span class="t">String</span> inputSentence) {
+        <span class="t">String</span>[] individualWords = inputSentence.trim().split(<span class="s">&quot;\\s+&quot;</span>);
+        <span class="t">StringBuilder</span> resultBuilder = <span class="k">new</span> <span class="t">StringBuilder</span>();
+ 
+        <span class="k">for</span> (<span class="k">int</span> wordIndex = <span class="n">0</span>; wordIndex &lt; individualWords.length; wordIndex++) {
+            <span class="t">String</span> reversedWord = <span class="k">new</span> <span class="t">StringBuilder</span>(individualWords[wordIndex]).reverse().toString();
+            resultBuilder.append(reversedWord);
+            <span class="k">if</span> (wordIndex &lt; individualWords.length - <span class="n">1</span>) {
+                resultBuilder.append(<span class="s">&quot;-&quot;</span>);
+            }
+        }
+        <span class="k">return</span> resultBuilder.toString();
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(reverseEachWordAndJoin(<span class="s">&quot;The quick brown&quot;</span>));
+        <span class="c">// &quot;ehT-kciuq-nworb&quot;</span>
+    }
+}</code></pre>
+<h1 id="string-compression-transformation-1">String Compression &amp; Transformation</h1>
+<p class="question"><strong>Q4. String compression. (Asked multiple times, including a HackerRank variant.)</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/string-compression/" target="_blank" rel="noopener">String Compression &#8599;</a></span></p>
+<p class="problem">Problem statement: Given a string, compress consecutive runs of the same character by replacing each run with the character followed by the count of its consecutive occurrences. If the compressed string is not shorter than the original, return the original string unchanged. Example: compressRepeatingCharacters(&quot;aabcccccaaa&quot;) should return &quot;a2b1c5a3&quot;, since that is shorter than the 11-character original.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">StringCompressor</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="t">String</span> compressRepeatingCharacters(<span class="t">String</span> inputText) {
+        <span class="k">if</span> (inputText == <span class="k">null</span> || inputText.isEmpty()) {
+            <span class="k">return</span> inputText;
+        }
+ 
+        <span class="t">StringBuilder</span> compressedBuilder = <span class="k">new</span> <span class="t">StringBuilder</span>();
+        <span class="k">int</span> runStartIndex = <span class="n">0</span>;
+ 
+        <span class="k">while</span> (runStartIndex &lt; inputText.length()) {
+            <span class="k">char</span> currentCharacter = inputText.charAt(runStartIndex);
+            <span class="k">int</span> runEndIndex = runStartIndex;
+ 
+            <span class="c">// extend runEndIndex forward while the SAME character continues to repeat</span>
+            <span class="k">while</span> (runEndIndex &lt; inputText.length() &amp;&amp; inputText.charAt(runEndIndex) == currentCharacter) {
+                runEndIndex++;
+            }
+ 
+            <span class="k">int</span> runLength = runEndIndex - runStartIndex;
+            compressedBuilder.append(currentCharacter).append(runLength);
+ 
+            runStartIndex = runEndIndex; <span class="c">// jump ahead to the start of the NEXT run</span>
+        }
+ 
+        <span class="t">String</span> compressedResult = compressedBuilder.toString();
+        <span class="c">// only use the compressed form if it&#x27;s actually SHORTER than the original</span>
+        <span class="k">return</span> compressedResult.length() &lt; inputText.length() ? compressedResult : inputText;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(compressRepeatingCharacters(<span class="s">&quot;aabcccccaaa&quot;</span>)); <span class="c">// &quot;a2b1c5a3&quot;</span>
+        <span class="t">System</span>.out.println(compressRepeatingCharacters(<span class="s">&quot;abcdef&quot;</span>));      <span class="c">// &quot;abcdef&quot; (compression not shorter)</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time (a single pass through the string), O(n) extra space for the compressed result in the worst case.</strong></p>
+<p class="question"><strong>Q5. Capitalize each word in a sentence.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/capitalize-the-title/" target="_blank" rel="noopener">Related: Capitalize The Title &#8599;</a></span></p>
+<p class="problem">Problem statement: Given a sentence, return a new sentence where the first letter of every word is capitalized, and the remaining letters of each word are lowercase. Example: capitalizeEachWord(&quot;the QUICK brown fox&quot;) should return &quot;The Quick Brown Fox&quot;.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">SentenceCapitalizer</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="t">String</span> capitalizeEachWord(<span class="t">String</span> inputSentence) {
+        <span class="t">String</span>[] individualWords = inputSentence.trim().split(<span class="s">&quot;\\s+&quot;</span>);
+        <span class="t">StringBuilder</span> capitalizedBuilder = <span class="k">new</span> <span class="t">StringBuilder</span>();
+ 
+        <span class="k">for</span> (<span class="k">int</span> wordIndex = <span class="n">0</span>; wordIndex &lt; individualWords.length; wordIndex++) {
+            <span class="t">String</span> currentWord = individualWords[wordIndex];
+            <span class="k">if</span> (!currentWord.isEmpty()) {
+                <span class="c">// uppercase the first character, lowercase everything after it</span>
+                <span class="t">String</span> capitalizedWord = <span class="t">Character</span>.toUpperCase(currentWord.charAt(<span class="n">0</span>))
+                    + currentWord.substring(<span class="n">1</span>).toLowerCase();
+                capitalizedBuilder.append(capitalizedWord);
+            }
+            <span class="k">if</span> (wordIndex &lt; individualWords.length - <span class="n">1</span>) {
+                capitalizedBuilder.append(<span class="s">&quot; &quot;</span>);
+            }
+        }
+        <span class="k">return</span> capitalizedBuilder.toString();
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(capitalizeEachWord(<span class="s">&quot;the QUICK brown fox&quot;</span>));
+        <span class="c">// &quot;The Quick Brown Fox&quot;</span>
+    }
+}</code></pre>
+<p class="question"><strong>Q6. Rotate a string (and: given two strings, determine whether one is a rotation of the other).</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/rotate-string/" target="_blank" rel="noopener">Rotate String &#8599;</a></span></p>
+<p class="problem">Problem statement: Given a string and a number of positions, produce the string rotated LEFT by that many positions. Additionally, given two strings, determine whether the SECOND is a rotation of the FIRST. Examples: rotateStringLeft(&quot;abcdef&quot;, 2) should return &quot;cdefab&quot;. isRotationOfOther(&quot;waterbottle&quot;, &quot;erbottlewat&quot;) should return true.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">StringRotator</span> {
+ 
+    <span class="c">// Rotates inputText LEFT by rotationCount positions</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="t">String</span> rotateStringLeft(<span class="t">String</span> inputText, <span class="k">int</span> rotationCount) {
+        <span class="k">if</span> (inputText.isEmpty()) {
+            <span class="k">return</span> inputText;
+        }
+        <span class="c">// normalize the rotation count in case it&#x27;s larger than the string&#x27;s length</span>
+        <span class="k">int</span> normalizedRotationCount = rotationCount % inputText.length();
+ 
+        <span class="t">String</span> movedToFront = inputText.substring(normalizedRotationCount);
+        <span class="t">String</span> movedToBack = inputText.substring(<span class="n">0</span>, normalizedRotationCount);
+        <span class="k">return</span> movedToFront + movedToBack;
+    }
+ 
+    <span class="c">// Determines whether candidateRotation is a rotation of originalText.</span>
+    <span class="c">// Trick: any rotation of originalText is always a SUBSTRING of</span>
+    <span class="c">// (originalText + originalText) -- concatenating the string with itself</span>
+    <span class="c">// covers every possible rotation point.</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">boolean</span> isRotationOfOther(<span class="t">String</span> originalText, <span class="t">String</span> candidateRotation) {
+        <span class="k">if</span> (originalText.length() != candidateRotation.length()) {
+            <span class="k">return</span> <span class="k">false</span>;
+        }
+        <span class="t">String</span> doubledOriginalText = originalText + originalText;
+        <span class="k">return</span> doubledOriginalText.contains(candidateRotation);
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(rotateStringLeft(<span class="s">&quot;abcdef&quot;</span>, <span class="n">2</span>)); <span class="c">// &quot;cdefab&quot;</span>
+        <span class="t">System</span>.out.println(isRotationOfOther(<span class="s">&quot;waterbottle&quot;</span>, <span class="s">&quot;erbottlewat&quot;</span>)); <span class="c">// true</span>
+        <span class="t">System</span>.out.println(isRotationOfOther(<span class="s">&quot;waterbottle&quot;</span>, <span class="s">&quot;bottlewatern&quot;</span>)); <span class="c">// false</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time and space for rotateStringLeft. O(n) time and space for isRotationOfOther, where the doubled-string trick avoids needing to manually check every possible rotation point one at a time.</strong></p>
+<h1 id="searching-parsing-counting-2">Searching, Parsing &amp; Counting</h1>
+<p class="question"><strong>Q7. Count the occurrences of a substring within a string. (Asked multiple times in the original list.)</strong></p>
+<p class="problem">Problem statement: Given a source string and a target substring, count how many times the target substring appears within the source string. Example: countSubstringOccurrences(&quot;ababababab&quot;, &quot;aba&quot;) should return 2 if OVERLAPPING occurrences are counted (matches starting at index 0 and index 4), or the count can also be computed for non-overlapping occurrences depending on the exact requirement -- both variants are shown below.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">SubstringOccurrenceCounter</span> {
+ 
+    <span class="c">// Counts OVERLAPPING occurrences -- after finding a match, the search</span>
+    <span class="c">// resumes from just ONE position past where the match started</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> countOverlappingOccurrences(<span class="t">String</span> sourceText, <span class="t">String</span> targetSubstring) {
+        <span class="k">if</span> (targetSubstring.isEmpty()) {
+            <span class="k">return</span> <span class="n">0</span>;
+        }
+        <span class="k">int</span> occurrenceCount = <span class="n">0</span>;
+        <span class="k">int</span> searchStartIndex = <span class="n">0</span>;
+ 
+        <span class="k">while</span> (<span class="k">true</span>) {
+            <span class="k">int</span> foundIndex = sourceText.indexOf(targetSubstring, searchStartIndex);
+            <span class="k">if</span> (foundIndex == -<span class="n">1</span>) {
+                <span class="k">break</span>; <span class="c">// no more occurrences found</span>
+            }
+            occurrenceCount++;
+            searchStartIndex = foundIndex + <span class="n">1</span>; <span class="c">// advance by only ONE position (allows overlap)</span>
+        }
+        <span class="k">return</span> occurrenceCount;
+    }
+ 
+    <span class="c">// Counts NON-overlapping occurrences -- after finding a match, the search</span>
+    <span class="c">// resumes AFTER the entire matched substring</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> countNonOverlappingOccurrences(<span class="t">String</span> sourceText, <span class="t">String</span> targetSubstring) {
+        <span class="k">if</span> (targetSubstring.isEmpty()) {
+            <span class="k">return</span> <span class="n">0</span>;
+        }
+        <span class="k">int</span> occurrenceCount = <span class="n">0</span>;
+        <span class="k">int</span> searchStartIndex = <span class="n">0</span>;
+ 
+        <span class="k">while</span> (<span class="k">true</span>) {
+            <span class="k">int</span> foundIndex = sourceText.indexOf(targetSubstring, searchStartIndex);
+            <span class="k">if</span> (foundIndex == -<span class="n">1</span>) {
+                <span class="k">break</span>;
+            }
+            occurrenceCount++;
+            searchStartIndex = foundIndex + targetSubstring.length(); <span class="c">// skip past the whole match</span>
+        }
+        <span class="k">return</span> occurrenceCount;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(countOverlappingOccurrences(<span class="s">&quot;ababababab&quot;</span>, <span class="s">&quot;aba&quot;</span>));    <span class="c">// 4</span>
+        <span class="t">System</span>.out.println(countNonOverlappingOccurrences(<span class="s">&quot;ababababab&quot;</span>, <span class="s">&quot;aba&quot;</span>)); <span class="c">// 2</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n*m) time in the worst case, where n is the length of the source string and m is the length of the target substring (this is the complexity of Java&#x27;s built-in String.indexOf implementation for typical inputs). More advanced algorithms like Knuth-Morris-Pratt (KMP) can guarantee O(n + m) time, but are rarely required for a typical interview answer unless specifically asked for.</strong></p>
+<p class="question"><strong>Q8. Check whether parentheses/curly braces/brackets are balanced. (Asked as two separate questions in the original list.)</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/valid-parentheses/" target="_blank" rel="noopener">Valid Parentheses &#8599;</a></span></p>
+<p class="problem">Problem statement: Given a string containing only the characters (, ), {, }, [, and ], determine whether every opening bracket has a matching closing bracket of the SAME type, in the correct nested order. Example: areBracketsBalanced(&quot;{[()()]}&quot;) should return true. areBracketsBalanced(&quot;{[(])}&quot;) should return false (the brackets are present in equal numbers, but not correctly NESTED).</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">ArrayDeque</span>;
+<span class="k">import</span> java.util.<span class="t">Deque</span>;
+<span class="k">import</span> java.util.<span class="t">Map</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">BracketBalanceChecker</span> {
+ 
+    <span class="c">// Maps each closing bracket to its required matching opening bracket</span>
+    <span class="k">private</span> <span class="k">static</span> <span class="k">final</span> <span class="t">Map</span>&lt;<span class="t">Character</span>, <span class="t">Character</span>&gt; <span class="t">MATCHING_OPENING_BRACKET</span> = <span class="t">Map</span>.of(
+        <span class="s">&#x27;)&#x27;</span>, <span class="s">&#x27;(&#x27;</span>,
+        <span class="s">&#x27;}&#x27;</span>, <span class="s">&#x27;{&#x27;</span>,
+        <span class="s">&#x27;]&#x27;</span>, <span class="s">&#x27;[&#x27;</span>
+    );
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">boolean</span> areBracketsBalanced(<span class="t">String</span> inputText) {
+        <span class="t">Deque</span>&lt;<span class="t">Character</span>&gt; openBracketStack = <span class="k">new</span> <span class="t">ArrayDeque</span>&lt;&gt;();
+ 
+        <span class="k">for</span> (<span class="k">char</span> currentCharacter : inputText.toCharArray()) {
+            <span class="k">if</span> (currentCharacter == <span class="s">&#x27;(&#x27;</span> || currentCharacter == <span class="s">&#x27;{&#x27;</span> || currentCharacter == <span class="s">&#x27;[&#x27;</span>) {
+                openBracketStack.push(currentCharacter); <span class="c">// remember this opening bracket</span>
+ 
+            } <span class="k">else</span> <span class="k">if</span> (<span class="t">MATCHING_OPENING_BRACKET</span>.containsKey(currentCharacter)) {
+                <span class="c">// this is a closing bracket -- it must match the MOST RECENT</span>
+                <span class="c">// unmatched opening bracket (last in, first out)</span>
+                <span class="k">if</span> (openBracketStack.isEmpty()
+                        || openBracketStack.pop() != <span class="t">MATCHING_OPENING_BRACKET</span>.get(currentCharacter)) {
+                    <span class="k">return</span> <span class="k">false</span>; <span class="c">// no matching opener, or the wrong TYPE of opener</span>
+                }
+            }
+            <span class="c">// any other character is simply ignored</span>
+        }
+ 
+        <span class="c">// balanced only if every opening bracket found its match</span>
+        <span class="k">return</span> openBracketStack.isEmpty();
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(areBracketsBalanced(<span class="s">&quot;{[()()]}&quot;</span>)); <span class="c">// true</span>
+        <span class="t">System</span>.out.println(areBracketsBalanced(<span class="s">&quot;{[(])}&quot;</span>));   <span class="c">// false -- incorrectly nested</span>
+        <span class="t">System</span>.out.println(areBracketsBalanced(<span class="s">&quot;(((&quot;</span>));       <span class="c">// false -- unmatched openers</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time (a single pass through the string), O(n) extra space for the stack in the worst case (e.g. a string of all opening brackets).</strong></p>
+<p class="question"><strong>Q9. Parse a string of numbers and return it as an integer.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/string-to-integer-atoi/" target="_blank" rel="noopener">String To Integer Atoi &#8599;</a></span></p>
+<p class="problem">Problem statement: Given a string representing a valid integer (e.g. &quot;12345&quot; or &quot;-42&quot;), convert it to its integer value WITHOUT using the built-in Integer.parseInt() method.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">StringToIntegerParser</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> parseStringToInteger(<span class="t">String</span> numericText) {
+        <span class="k">int</span> currentIndex = <span class="n">0</span>;
+        <span class="k">boolean</span> isNegativeNumber = <span class="k">false</span>;
+ 
+        <span class="c">// handle an optional leading sign character</span>
+        <span class="k">if</span> (numericText.charAt(<span class="n">0</span>) == <span class="s">&#x27;-&#x27;</span> || numericText.charAt(<span class="n">0</span>) == <span class="s">&#x27;+&#x27;</span>) {
+            isNegativeNumber = numericText.charAt(<span class="n">0</span>) == <span class="s">&#x27;-&#x27;</span>;
+            currentIndex = <span class="n">1</span>;
+        }
+ 
+        <span class="k">int</span> parsedValue = <span class="n">0</span>;
+        <span class="k">while</span> (currentIndex &lt; numericText.length()) {
+            <span class="k">char</span> currentDigitCharacter = numericText.charAt(currentIndex);
+            <span class="k">if</span> (currentDigitCharacter &lt; <span class="s">&#x27;0&#x27;</span> || currentDigitCharacter &gt; <span class="s">&#x27;9&#x27;</span>) {
+                <span class="k">throw</span> <span class="k">new</span> <span class="t">NumberFormatException</span>(<span class="s">&quot;Invalid character in numeric string: &quot;</span> + currentDigitCharacter);
+            }
+            <span class="k">int</span> digitValue = currentDigitCharacter - <span class="s">&#x27;0&#x27;</span>; <span class="c">// converts the character to its numeric value</span>
+            parsedValue = parsedValue * <span class="n">10</span> + digitValue;
+            currentIndex++;
+        }
+ 
+        <span class="k">return</span> isNegativeNumber ? -parsedValue : parsedValue;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(parseStringToInteger(<span class="s">&quot;12345&quot;</span>)); <span class="c">// 12345</span>
+        <span class="t">System</span>.out.println(parseStringToInteger(<span class="s">&quot;-42&quot;</span>));   <span class="c">// -42</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time, where n is the number of digits. O(1) extra space.</strong></p>
+<p class="question"><strong>Q10. Sort words in a string array according to their sizes.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/rearrange-words-in-a-sentence/" target="_blank" rel="noopener">Rearrange Words In A Sentence &#8599;</a></span></p>
+<p class="problem">Problem statement: Given an array of words, sort them by LENGTH (shortest to longest). Example: sortWordsBySize(new String[]{&quot;banana&quot;, &quot;kiwi&quot;, &quot;apple&quot;, &quot;fig&quot;}) should return [&quot;fig&quot;, &quot;kiwi&quot;, &quot;apple&quot;, &quot;banana&quot;].</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">Arrays</span>;
+<span class="k">import</span> java.util.<span class="t">Comparator</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">WordSizeSorter</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="t">String</span>[] sortWordsBySize(<span class="t">String</span>[] wordArray) {
+        <span class="t">String</span>[] sortedWords = wordArray.clone(); <span class="c">// avoid mutating the caller&#x27;s original array</span>
+        <span class="t">Arrays</span>.sort(sortedWords, <span class="t">Comparator</span>.comparingInt(<span class="t">String</span>::length));
+        <span class="k">return</span> sortedWords;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">String</span>[] wordArray = {<span class="s">&quot;banana&quot;</span>, <span class="s">&quot;kiwi&quot;</span>, <span class="s">&quot;apple&quot;</span>, <span class="s">&quot;fig&quot;</span>};
+        <span class="t">String</span>[] sortedResult = sortWordsBySize(wordArray);
+        <span class="t">System</span>.out.println(<span class="t">Arrays</span>.toString(sortedResult));
+        <span class="c">// [fig, kiwi, apple, banana]</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n log n) time, where n is the number of words, due to the underlying comparison-based sort.</strong></p>
+<p class="question"><strong>Q11. Find the second most used alphabet (letter) in a sentence.</strong></p>
+<p class="problem">Problem statement: Given a sentence, determine which letter appears the SECOND most frequently. Example: findSecondMostFrequentLetter(&quot;programming&quot;) should identify the letter with the second-highest frequency count among all letters in the text.</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">HashMap</span>;
+<span class="k">import</span> java.util.<span class="t">Map</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">SecondMostFrequentLetterFinder</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">char</span> findSecondMostFrequentLetter(<span class="t">String</span> inputSentence) {
+        <span class="t">Map</span>&lt;<span class="t">Character</span>, <span class="t">Integer</span>&gt; letterFrequencyMap = <span class="k">new</span> <span class="t">HashMap</span>&lt;&gt;();
+ 
+        <span class="c">// count occurrences of each letter, ignoring case and non-letter characters</span>
+        <span class="k">for</span> (<span class="k">char</span> currentCharacter : inputSentence.toLowerCase().toCharArray()) {
+            <span class="k">if</span> (<span class="t">Character</span>.isLetter(currentCharacter)) {
+                letterFrequencyMap.merge(currentCharacter, <span class="n">1</span>, <span class="t">Integer</span>::sum);
+            }
+        }
+ 
+        <span class="k">char</span> mostFrequentLetter = <span class="s">&#x27; &#x27;</span>;
+        <span class="k">char</span> secondMostFrequentLetter = <span class="s">&#x27; &#x27;</span>;
+        <span class="k">int</span> highestFrequencyCount = <span class="n">0</span>;
+        <span class="k">int</span> secondHighestFrequencyCount = <span class="n">0</span>;
+ 
+        <span class="k">for</span> (<span class="t">Map</span>.<span class="t">Entry</span>&lt;<span class="t">Character</span>, <span class="t">Integer</span>&gt; currentEntry : letterFrequencyMap.entrySet()) {
+            <span class="k">int</span> currentFrequency = currentEntry.getValue();
+            <span class="k">char</span> currentLetter = currentEntry.getKey();
+ 
+            <span class="k">if</span> (currentFrequency &gt; highestFrequencyCount) {
+                <span class="c">// current letter becomes the new MOST frequent;</span>
+                <span class="c">// the PREVIOUS most-frequent letter becomes the new second-most-frequent</span>
+                secondHighestFrequencyCount = highestFrequencyCount;
+                secondMostFrequentLetter = mostFrequentLetter;
+                highestFrequencyCount = currentFrequency;
+                mostFrequentLetter = currentLetter;
+            } <span class="k">else</span> <span class="k">if</span> (currentFrequency &gt; secondHighestFrequencyCount) {
+                secondHighestFrequencyCount = currentFrequency;
+                secondMostFrequentLetter = currentLetter;
+            }
+        }
+        <span class="k">return</span> secondMostFrequentLetter;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(findSecondMostFrequentLetter(<span class="s">&quot;programming&quot;</span>));
+        <span class="c">// &#x27;r&#x27; or &#x27;g&#x27; (both appear twice; &#x27;m&#x27; appears twice as well -- ties are</span>
+        <span class="c">// broken by HashMap iteration order, which is not guaranteed)</span>
+    }
+}</code></pre>
+<div class="callout"><strong>Note: </strong>When frequencies tie, the specific letter returned depends on HashMap&#x27;s iteration order, which is not guaranteed to be consistent. If a well-defined tie-break rule is required (e.g. alphabetically first among tied letters), sort the frequency entries explicitly rather than relying on map iteration order.</div>
+<p class="complexity"><strong>Complexity: O(n) time to build the frequency map, O(k) time to scan it for the top two frequencies, where k is the number of distinct letters (at most 26). Overall O(n) time.</strong></p>
+<p class="question"><strong>Q12. Given numbers in postfix (Reverse Polish) notation, evaluate the result.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/evaluate-reverse-polish-notation/" target="_blank" rel="noopener">Evaluate Reverse Polish Notation &#8599;</a></span></p>
+<p class="problem">Problem statement: Postfix notation places operators AFTER their operands (e.g. &quot;3 4 +&quot; means 3 + 4). Given a postfix expression as a space-separated string, evaluate it and return the numeric result. Example: evaluatePostfixExpression(&quot;5 1 2 + 4 * + 3 -&quot;) should return 14.</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">ArrayDeque</span>;
+<span class="k">import</span> java.util.<span class="t">Deque</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">PostfixExpressionEvaluator</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> evaluatePostfixExpression(<span class="t">String</span> postfixExpression) {
+        <span class="t">Deque</span>&lt;<span class="t">Integer</span>&gt; operandStack = <span class="k">new</span> <span class="t">ArrayDeque</span>&lt;&gt;();
+        <span class="t">String</span>[] expressionTokens = postfixExpression.trim().split(<span class="s">&quot;\\s+&quot;</span>);
+ 
+        <span class="k">for</span> (<span class="t">String</span> currentToken : expressionTokens) {
+            <span class="k">if</span> (isArithmeticOperator(currentToken)) {
+                <span class="c">// an operator applies to the TWO most recently pushed operands</span>
+                <span class="k">int</span> secondOperand = operandStack.pop();
+                <span class="k">int</span> firstOperand = operandStack.pop();
+                <span class="k">int</span> operationResult = applyOperator(firstOperand, secondOperand, currentToken);
+                operandStack.push(operationResult);
+            } <span class="k">else</span> {
+                operandStack.push(<span class="t">Integer</span>.parseInt(currentToken));
+            }
+        }
+        <span class="k">return</span> operandStack.pop(); <span class="c">// the final remaining value is the answer</span>
+    }
+ 
+    <span class="k">private</span> <span class="k">static</span> <span class="k">boolean</span> isArithmeticOperator(<span class="t">String</span> token) {
+        <span class="k">return</span> token.equals(<span class="s">&quot;+&quot;</span>) || token.equals(<span class="s">&quot;-&quot;</span>) || token.equals(<span class="s">&quot;*&quot;</span>) || token.equals(<span class="s">&quot;/&quot;</span>);
+    }
+ 
+    <span class="k">private</span> <span class="k">static</span> <span class="k">int</span> applyOperator(<span class="k">int</span> firstOperand, <span class="k">int</span> secondOperand, <span class="t">String</span> operatorSymbol) {
+        <span class="k">switch</span> (operatorSymbol) {
+            <span class="k">case</span> <span class="s">&quot;+&quot;</span>: <span class="k">return</span> firstOperand + secondOperand;
+            <span class="k">case</span> <span class="s">&quot;-&quot;</span>: <span class="k">return</span> firstOperand - secondOperand;
+            <span class="k">case</span> <span class="s">&quot;*&quot;</span>: <span class="k">return</span> firstOperand * secondOperand;
+            <span class="k">case</span> <span class="s">&quot;/&quot;</span>: <span class="k">return</span> firstOperand / secondOperand;
+            <span class="k">default</span>: <span class="k">throw</span> <span class="k">new</span> <span class="t">IllegalArgumentException</span>(<span class="s">&quot;Unknown operator: &quot;</span> + operatorSymbol);
+        }
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(evaluatePostfixExpression(<span class="s">&quot;5 1 2 + 4 * + 3 -&quot;</span>)); <span class="c">// 14</span>
+        <span class="c">// Step by step: 1 2 + = 3; 3 4 * = 12; 5 12 + = 17; 17 3 - = 14</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time, where n is the number of tokens in the expression. O(n) extra space for the operand stack in the worst case.</strong></p>
+<h1 id="anagrams-word-comparison-3">Anagrams &amp; Word Comparison</h1>
+<p class="question"><strong>Q13. Check whether two words (or strings) are anagrams of each other.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/valid-anagram/" target="_blank" rel="noopener">Valid Anagram &#8599;</a></span></p>
+<p class="problem">Problem statement: Two strings are anagrams of each other if one can be formed by rearranging the letters of the other, using every letter exactly once. Given two strings, determine whether they are anagrams. Example: areAnagrams(&quot;listen&quot;, &quot;silent&quot;) should return true.</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">Arrays</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">AnagramChecker</span> {
+ 
+    <span class="c">// Approach 1: sort both strings&#x27; characters and compare -- simple and clear</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">boolean</span> areAnagramsUsingSort(<span class="t">String</span> firstWord, <span class="t">String</span> secondWord) {
+        <span class="k">if</span> (firstWord.length() != secondWord.length()) {
+            <span class="k">return</span> <span class="k">false</span>;
+        }
+        <span class="k">char</span>[] firstCharacters = firstWord.toLowerCase().toCharArray();
+        <span class="k">char</span>[] secondCharacters = secondWord.toLowerCase().toCharArray();
+ 
+        <span class="t">Arrays</span>.sort(firstCharacters);
+        <span class="t">Arrays</span>.sort(secondCharacters);
+ 
+        <span class="k">return</span> <span class="t">Arrays</span>.equals(firstCharacters, secondCharacters);
+    }
+ 
+    <span class="c">// Approach 2: frequency counting -- faster (O(n) instead of O(n log n))</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">boolean</span> areAnagramsUsingFrequencyCount(<span class="t">String</span> firstWord, <span class="t">String</span> secondWord) {
+        <span class="k">if</span> (firstWord.length() != secondWord.length()) {
+            <span class="k">return</span> <span class="k">false</span>;
+        }
+        <span class="k">int</span>[] letterFrequencyCounts = <span class="k">new</span> <span class="k">int</span>[<span class="n">26</span>]; <span class="c">// assumes lowercase English letters only</span>
+ 
+        <span class="k">for</span> (<span class="k">int</span> index = <span class="n">0</span>; index &lt; firstWord.length(); index++) {
+            letterFrequencyCounts[<span class="t">Character</span>.toLowerCase(firstWord.charAt(index)) - <span class="s">&#x27;a&#x27;</span>]++;
+            letterFrequencyCounts[<span class="t">Character</span>.toLowerCase(secondWord.charAt(index)) - <span class="s">&#x27;a&#x27;</span>]--;
+        }
+ 
+        <span class="c">// if the two words are true anagrams, every count returns to exactly zero</span>
+        <span class="k">for</span> (<span class="k">int</span> currentCount : letterFrequencyCounts) {
+            <span class="k">if</span> (currentCount != <span class="n">0</span>) {
+                <span class="k">return</span> <span class="k">false</span>;
+            }
+        }
+        <span class="k">return</span> <span class="k">true</span>;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(areAnagramsUsingFrequencyCount(<span class="s">&quot;listen&quot;</span>, <span class="s">&quot;silent&quot;</span>)); <span class="c">// true</span>
+        <span class="t">System</span>.out.println(areAnagramsUsingFrequencyCount(<span class="s">&quot;hello&quot;</span>, <span class="s">&quot;world&quot;</span>));   <span class="c">// false</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: the sort-based approach is O(n log n) time. The frequency-count approach is O(n) time, O(1) extra space (since the frequency array has a fixed size of 26, independent of the input length).</strong></p>
+<p class="question"><strong>Q14. Find the shortest distance (&quot;midpoint&quot;) between two words in a document.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/shortest-word-distance/" target="_blank" rel="noopener">Shortest Word Distance &#8599;</a></span></p>
+<p class="problem">Problem statement: Given a large body of text and two distinct target words that both appear somewhere within it, find the SMALLEST distance (measured in number of words apart) between any occurrence of the first word and any occurrence of the second word. Example: given the words [&quot;the&quot;, &quot;quick&quot;, &quot;fox&quot;, &quot;jumped&quot;, &quot;over&quot;, &quot;the&quot;, &quot;lazy&quot;, &quot;fox&quot;], the shortest distance between &quot;fox&quot; and &quot;the&quot; is 1 (the &quot;fox&quot; at index 2 is adjacent to nothing useful, but the &quot;the&quot; at index 5 is 2 words from the &quot;fox&quot; at index 7 -- the true minimum distance across all pairs of occurrences is computed by the algorithm below).</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">ShortestWordDistanceFinder</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> findShortestDistanceBetweenWords(<span class="t">String</span>[] documentWords,
+                                                         <span class="t">String</span> firstTargetWord,
+                                                         <span class="t">String</span> secondTargetWord) {
+        <span class="k">int</span> lastSeenIndexOfFirstWord = -<span class="n">1</span>;
+        <span class="k">int</span> lastSeenIndexOfSecondWord = -<span class="n">1</span>;
+        <span class="k">int</span> shortestDistanceFound = <span class="t">Integer</span>.<span class="t">MAX_VALUE</span>;
+ 
+        <span class="c">// single pass through the document: whenever EITHER target word is</span>
+        <span class="c">// seen, immediately check the distance to the most recent sighting</span>
+        <span class="c">// of the OTHER target word</span>
+        <span class="k">for</span> (<span class="k">int</span> currentIndex = <span class="n">0</span>; currentIndex &lt; documentWords.length; currentIndex++) {
+            <span class="t">String</span> currentWord = documentWords[currentIndex];
+ 
+            <span class="k">if</span> (currentWord.equals(firstTargetWord)) {
+                lastSeenIndexOfFirstWord = currentIndex;
+            } <span class="k">else</span> <span class="k">if</span> (currentWord.equals(secondTargetWord)) {
+                lastSeenIndexOfSecondWord = currentIndex;
+            }
+ 
+            <span class="c">// only compute a distance once BOTH words have been seen at least once</span>
+            <span class="k">if</span> (lastSeenIndexOfFirstWord != -<span class="n">1</span> &amp;&amp; lastSeenIndexOfSecondWord != -<span class="n">1</span>) {
+                <span class="k">int</span> currentDistance = <span class="t">Math</span>.abs(lastSeenIndexOfFirstWord - lastSeenIndexOfSecondWord);
+                shortestDistanceFound = <span class="t">Math</span>.min(shortestDistanceFound, currentDistance);
+            }
+        }
+        <span class="k">return</span> shortestDistanceFound;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">String</span>[] documentWords = {<span class="s">&quot;the&quot;</span>, <span class="s">&quot;quick&quot;</span>, <span class="s">&quot;fox&quot;</span>, <span class="s">&quot;jumped&quot;</span>, <span class="s">&quot;over&quot;</span>, <span class="s">&quot;the&quot;</span>, <span class="s">&quot;lazy&quot;</span>, <span class="s">&quot;fox&quot;</span>};
+        <span class="k">int</span> shortestDistance = findShortestDistanceBetweenWords(documentWords, <span class="s">&quot;fox&quot;</span>, <span class="s">&quot;the&quot;</span>);
+        <span class="t">System</span>.out.println(shortestDistance);
+        <span class="c">// The closest pair is &quot;the&quot; at index 5 and &quot;fox&quot; at index 7, giving a distance of 2 --</span>
+        <span class="c">// closer than the alternative pairing of &quot;fox&quot; at index 2 with &quot;the&quot; at index 0 or 5.</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time — a single pass through the document, tracking only the most recent sighting of each target word — rather than the O(n^2) brute-force approach of comparing every occurrence of the first word against every occurrence of the second word.</strong></p>
+<h1 id="string-dynamic-programming-4">String Dynamic Programming</h1>
+<p class="question"><strong>Q15. Given two strings, return the length of their longest common subsequence.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/longest-common-subsequence/" target="_blank" rel="noopener">Longest Common Subsequence &#8599;</a></span></p>
+<p class="problem">Problem statement: A subsequence is a sequence of characters that appear in the same relative order within a string, but not necessarily contiguously. Given two strings firstText and secondText, find the length of their LONGEST common subsequence. Example: findLongestCommonSubsequenceLength(&quot;abcde&quot;, &quot;ace&quot;) should return 3, since &quot;ace&quot; is a subsequence of both.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">LongestCommonSubsequenceFinder</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> findLongestCommonSubsequenceLength(<span class="t">String</span> firstText, <span class="t">String</span> secondText) {
+        <span class="k">int</span> firstLength = firstText.length();
+        <span class="k">int</span> secondLength = secondText.length();
+ 
+        <span class="c">// matchTable[i][j] = length of the longest common subsequence using</span>
+        <span class="c">// the first i characters of firstText and the first j characters of secondText</span>
+        <span class="k">int</span>[][] matchTable = <span class="k">new</span> <span class="k">int</span>[firstLength + <span class="n">1</span>][secondLength + <span class="n">1</span>];
+ 
+        <span class="k">for</span> (<span class="k">int</span> firstIndex = <span class="n">1</span>; firstIndex &lt;= firstLength; firstIndex++) {
+            <span class="k">for</span> (<span class="k">int</span> secondIndex = <span class="n">1</span>; secondIndex &lt;= secondLength; secondIndex++) {
+                <span class="k">if</span> (firstText.charAt(firstIndex - <span class="n">1</span>) == secondText.charAt(secondIndex - <span class="n">1</span>)) {
+                    <span class="c">// characters match -- extend the subsequence found without these characters</span>
+                    matchTable[firstIndex][secondIndex] = matchTable[firstIndex - <span class="n">1</span>][secondIndex - <span class="n">1</span>] + <span class="n">1</span>;
+                } <span class="k">else</span> {
+                    <span class="c">// characters differ -- take the best result from skipping</span>
+                    <span class="c">// one character from EITHER string</span>
+                    matchTable[firstIndex][secondIndex] = <span class="t">Math</span>.max(
+                        matchTable[firstIndex - <span class="n">1</span>][secondIndex],
+                        matchTable[firstIndex][secondIndex - <span class="n">1</span>]);
+                }
+            }
+        }
+        <span class="k">return</span> matchTable[firstLength][secondLength];
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(findLongestCommonSubsequenceLength(<span class="s">&quot;abcde&quot;</span>, <span class="s">&quot;ace&quot;</span>)); <span class="c">// 3</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(firstLength x secondLength) time and space, using a standard 2D dynamic programming table.</strong></p>
+<p class="question"><strong>Q16. Edit Distance: given two strings, find the minimum number of operations to convert one into the other.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/edit-distance/" target="_blank" rel="noopener">Edit Distance &#8599;</a></span></p>
+<p class="problem">Problem statement: Given two strings sourceWord and targetWord, find the minimum number of single-character INSERT, DELETE, or REPLACE operations required to transform sourceWord into targetWord (this is also known as the Levenshtein distance). Example: calculateEditDistance(&quot;horse&quot;, &quot;ros&quot;) should return 3 (replace &#x27;h&#x27; with &#x27;r&#x27;, remove &#x27;r&#x27;, remove &#x27;e&#x27;).</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">EditDistanceCalculator</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> calculateEditDistance(<span class="t">String</span> sourceWord, <span class="t">String</span> targetWord) {
+        <span class="k">int</span> sourceLength = sourceWord.length();
+        <span class="k">int</span> targetLength = targetWord.length();
+ 
+        <span class="c">// editTable[i][j] = minimum edit distance between the first i</span>
+        <span class="c">// characters of sourceWord and the first j characters of targetWord</span>
+        <span class="k">int</span>[][] editTable = <span class="k">new</span> <span class="k">int</span>[sourceLength + <span class="n">1</span>][targetLength + <span class="n">1</span>];
+ 
+        <span class="c">// base cases: transforming an empty string into a string of length j</span>
+        <span class="c">// requires exactly j insertions (and vice versa for deletions)</span>
+        <span class="k">for</span> (<span class="k">int</span> sourceIndex = <span class="n">0</span>; sourceIndex &lt;= sourceLength; sourceIndex++) {
+            editTable[sourceIndex][<span class="n">0</span>] = sourceIndex;
+        }
+        <span class="k">for</span> (<span class="k">int</span> targetIndex = <span class="n">0</span>; targetIndex &lt;= targetLength; targetIndex++) {
+            editTable[<span class="n">0</span>][targetIndex] = targetIndex;
+        }
+ 
+        <span class="k">for</span> (<span class="k">int</span> sourceIndex = <span class="n">1</span>; sourceIndex &lt;= sourceLength; sourceIndex++) {
+            <span class="k">for</span> (<span class="k">int</span> targetIndex = <span class="n">1</span>; targetIndex &lt;= targetLength; targetIndex++) {
+ 
+                <span class="k">if</span> (sourceWord.charAt(sourceIndex - <span class="n">1</span>) == targetWord.charAt(targetIndex - <span class="n">1</span>)) {
+                    <span class="c">// characters already match -- no operation needed here,</span>
+                    <span class="c">// carry forward the result from both strings one character shorter</span>
+                    editTable[sourceIndex][targetIndex] = editTable[sourceIndex - <span class="n">1</span>][targetIndex - <span class="n">1</span>];
+                } <span class="k">else</span> {
+                    <span class="c">// characters differ -- try all three possible operations</span>
+                    <span class="c">// and take whichever leads to the fewest total edits</span>
+                    <span class="k">int</span> deleteCost = editTable[sourceIndex - <span class="n">1</span>][targetIndex];       <span class="c">// delete from source</span>
+                    <span class="k">int</span> insertCost = editTable[sourceIndex][targetIndex - <span class="n">1</span>];       <span class="c">// insert into source</span>
+                    <span class="k">int</span> replaceCost = editTable[sourceIndex - <span class="n">1</span>][targetIndex - <span class="n">1</span>];  <span class="c">// replace a character</span>
+ 
+                    <span class="k">int</span> cheapestOperationCost = <span class="t">Math</span>.min(deleteCost, <span class="t">Math</span>.min(insertCost, replaceCost));
+                    editTable[sourceIndex][targetIndex] = cheapestOperationCost + <span class="n">1</span>;
+                }
+            }
+        }
+        <span class="k">return</span> editTable[sourceLength][targetLength];
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(calculateEditDistance(<span class="s">&quot;horse&quot;</span>, <span class="s">&quot;ros&quot;</span>)); <span class="c">// 3</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(sourceLength x targetLength) time and space, using a standard 2D dynamic programming table analogous to the Longest Common Subsequence solution above.</strong></p><div class="pager"><span><a href="01-math-numbers-basic-algorithms.html">&larr; Math, Numbers &amp; Basic Algorithms</a></span><span><a href="03-arrays-core-algorithms.html">Arrays &amp; Core Algorithms &rarr;</a></span></div></main></div></body></html>

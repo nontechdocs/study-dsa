@@ -1,0 +1,567 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Grids, Matrices, Coin Change &amp; Top-K</title><link rel="stylesheet" href="../assets/style.css"></head><body>
+<header class="top"><a href="../index.html">&#8962; Index</a><span class="sp"></span><strong>Grids, Matrices, Coin Change &amp; Top-K</strong></header>
+<div class="layout"><nav class="toc"><a href="#connected-regions-in-a-grid-0">Connected Regions in a Grid</a><a href="#grid-path-distance-problems-1">Grid Path &amp; Distance Problems</a><a href="#matrix-manipulation-2">Matrix Manipulation</a><a href="#coin-change-3">Coin Change</a><a href="#top-k-most-frequent-elements-4">Top-K &amp; Most Frequent Elements</a></nav><main><h1 class="title">Java Programming Interview Questions — Document 3b</h1><p class="sub">2D Grids, Matrices, Coin Change &amp;amp; Top-K Problems</p><p>This document covers 2D array/grid/matrix problems from the supplied question list: counting connected &quot;islands,&quot; finding the nearest cell of a given type, matrix iteration and manipulation, path-sum problems, converting a matrix to tabular form, coin change (with variations), and &quot;top K&quot; / most-frequent-element problems.</p>
+<p>This is Document 3b, continuing directly from Document 3a, and is part of a multi-document set covering all 158 questions from the original spreadsheet.</p>
+<h1 id="connected-regions-in-a-grid-0">Connected Regions in a Grid</h1>
+<p class="question"><strong>Q1. 2D array: 1s are clouds, 0s are patches of sky -- any 1s connected together form one cloud. Count the clouds. (HackerRank-style.)</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/number-of-islands/" target="_blank" rel="noopener">Number Of Islands &#8599;</a></span></p>
+<p class="problem">Problem statement: Given a 2D grid of 0s and 1s, where connected 1s (horizontally or vertically adjacent) form a single &quot;cloud,&quot; count the total number of distinct, separate clouds in the grid. This is the classic &quot;Number of Islands&quot; problem, just with different terminology.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">CloudCounter</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> countClouds(<span class="k">int</span>[][] gridCells) {
+        <span class="k">if</span> (gridCells.length == <span class="n">0</span>) {
+            <span class="k">return</span> <span class="n">0</span>;
+        }
+        <span class="k">int</span> rowCount = gridCells.length;
+        <span class="k">int</span> columnCount = gridCells[<span class="n">0</span>].length;
+        <span class="k">int</span> cloudCount = <span class="n">0</span>;
+ 
+        <span class="k">for</span> (<span class="k">int</span> rowIndex = <span class="n">0</span>; rowIndex &lt; rowCount; rowIndex++) {
+            <span class="k">for</span> (<span class="k">int</span> columnIndex = <span class="n">0</span>; columnIndex &lt; columnCount; columnIndex++) {
+                <span class="k">if</span> (gridCells[rowIndex][columnIndex] == <span class="n">1</span>) {
+                    <span class="c">// found an unvisited cloud cell -- explore and &quot;sink&quot;</span>
+                    <span class="c">// the entire connected cloud it belongs to</span>
+                    cloudCount++;
+                    sinkEntireCloud(gridCells, rowIndex, columnIndex);
+                }
+            }
+        }
+        <span class="k">return</span> cloudCount;
+    }
+ 
+    <span class="c">// Recursively marks every cell connected to (rowIndex, columnIndex) as</span>
+    <span class="c">// visited (by changing it to 0), so it is never counted as part of a</span>
+    <span class="c">// DIFFERENT cloud later in the scan</span>
+    <span class="k">private</span> <span class="k">static</span> <span class="k">void</span> sinkEntireCloud(<span class="k">int</span>[][] gridCells, <span class="k">int</span> rowIndex, <span class="k">int</span> columnIndex) {
+        <span class="k">boolean</span> isOutsideGrid = rowIndex &lt; <span class="n">0</span> || rowIndex &gt;= gridCells.length
+            || columnIndex &lt; <span class="n">0</span> || columnIndex &gt;= gridCells[<span class="n">0</span>].length;
+        <span class="k">if</span> (isOutsideGrid || gridCells[rowIndex][columnIndex] == <span class="n">0</span>) {
+            <span class="k">return</span>; <span class="c">// out of bounds, or already-visited/empty cell -- stop here</span>
+        }
+ 
+        gridCells[rowIndex][columnIndex] = <span class="n">0</span>; <span class="c">// mark this cell as visited</span>
+ 
+        <span class="c">// recursively visit all four adjacent neighbors</span>
+        sinkEntireCloud(gridCells, rowIndex + <span class="n">1</span>, columnIndex);
+        sinkEntireCloud(gridCells, rowIndex - <span class="n">1</span>, columnIndex);
+        sinkEntireCloud(gridCells, rowIndex, columnIndex + <span class="n">1</span>);
+        sinkEntireCloud(gridCells, rowIndex, columnIndex - <span class="n">1</span>);
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[][] gridCells = {
+            {<span class="n">1</span>, <span class="n">1</span>, <span class="n">0</span>, <span class="n">0</span>, <span class="n">0</span>},
+            {<span class="n">1</span>, <span class="n">1</span>, <span class="n">0</span>, <span class="n">0</span>, <span class="n">0</span>},
+            {<span class="n">0</span>, <span class="n">0</span>, <span class="n">1</span>, <span class="n">0</span>, <span class="n">0</span>},
+            {<span class="n">0</span>, <span class="n">0</span>, <span class="n">0</span>, <span class="n">1</span>, <span class="n">1</span>}
+        };
+        <span class="t">System</span>.out.println(countClouds(gridCells)); <span class="c">// 3</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(rows x columns) time -- every cell is visited a constant number of times overall. O(rows x columns) space in the worst case, due to the recursive call stack (e.g. if the entire grid is a single connected cloud).</strong></p>
+<p class="question"><strong>Q2. Something similar to number of islands, but with a little more complexity added.</strong></p>
+<p class="problem">Problem statement: A common, more advanced variant of the Number of Islands problem asks for the SIZE of the LARGEST island (connected region), not just the total count. Example: findLargestIslandSize on a grid should return the number of cells in the biggest connected group of 1s.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">LargestIslandFinder</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> findLargestIslandSize(<span class="k">int</span>[][] gridCells) {
+        <span class="k">if</span> (gridCells.length == <span class="n">0</span>) {
+            <span class="k">return</span> <span class="n">0</span>;
+        }
+        <span class="k">int</span> rowCount = gridCells.length;
+        <span class="k">int</span> columnCount = gridCells[<span class="n">0</span>].length;
+        <span class="k">int</span> largestIslandSizeFound = <span class="n">0</span>;
+ 
+        <span class="k">for</span> (<span class="k">int</span> rowIndex = <span class="n">0</span>; rowIndex &lt; rowCount; rowIndex++) {
+            <span class="k">for</span> (<span class="k">int</span> columnIndex = <span class="n">0</span>; columnIndex &lt; columnCount; columnIndex++) {
+                <span class="k">if</span> (gridCells[rowIndex][columnIndex] == <span class="n">1</span>) {
+                    <span class="k">int</span> currentIslandSize = measureIslandSize(gridCells, rowIndex, columnIndex);
+                    largestIslandSizeFound = <span class="t">Math</span>.max(largestIslandSizeFound, currentIslandSize);
+                }
+            }
+        }
+        <span class="k">return</span> largestIslandSizeFound;
+    }
+ 
+    <span class="c">// Recursively measures the size of the connected island starting at</span>
+    <span class="c">// (rowIndex, columnIndex), &quot;sinking&quot; each visited cell as it goes</span>
+    <span class="k">private</span> <span class="k">static</span> <span class="k">int</span> measureIslandSize(<span class="k">int</span>[][] gridCells, <span class="k">int</span> rowIndex, <span class="k">int</span> columnIndex) {
+        <span class="k">boolean</span> isOutsideGrid = rowIndex &lt; <span class="n">0</span> || rowIndex &gt;= gridCells.length
+            || columnIndex &lt; <span class="n">0</span> || columnIndex &gt;= gridCells[<span class="n">0</span>].length;
+        <span class="k">if</span> (isOutsideGrid || gridCells[rowIndex][columnIndex] == <span class="n">0</span>) {
+            <span class="k">return</span> <span class="n">0</span>;
+        }
+ 
+        gridCells[rowIndex][columnIndex] = <span class="n">0</span>; <span class="c">// mark visited</span>
+ 
+        <span class="c">// this cell counts as 1, plus however many connected cells its</span>
+        <span class="c">// four neighbors contribute</span>
+        <span class="k">return</span> <span class="n">1</span>
+            + measureIslandSize(gridCells, rowIndex + <span class="n">1</span>, columnIndex)
+            + measureIslandSize(gridCells, rowIndex - <span class="n">1</span>, columnIndex)
+            + measureIslandSize(gridCells, rowIndex, columnIndex + <span class="n">1</span>)
+            + measureIslandSize(gridCells, rowIndex, columnIndex - <span class="n">1</span>);
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[][] gridCells = {
+            {<span class="n">1</span>, <span class="n">1</span>, <span class="n">0</span>, <span class="n">0</span>},
+            {<span class="n">1</span>, <span class="n">1</span>, <span class="n">0</span>, <span class="n">1</span>},
+            {<span class="n">0</span>, <span class="n">0</span>, <span class="n">0</span>, <span class="n">1</span>},
+            {<span class="n">0</span>, <span class="n">1</span>, <span class="n">1</span>, <span class="n">1</span>}
+        };
+        <span class="t">System</span>.out.println(findLargestIslandSize(gridCells)); <span class="c">// 4</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(rows x columns) time and space, using the same flood-fill technique as the cloud-counting problem above, extended to track the SIZE of each region rather than just counting how many regions exist.</strong></p>
+<h1 id="grid-path-distance-problems-1">Grid Path &amp; Distance Problems</h1>
+<p class="question"><strong>Q3. Given a 2D array with some cells marked as pantries, find the steps to the nearest pantry (for every cell).</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/01-matrix/" target="_blank" rel="noopener">Related: 01 Matrix &#8599;</a> <a class="lc" href="https://leetcode.com/problems/walls-and-gates/" target="_blank" rel="noopener">Related: Walls And Gates &#8599;</a></span></p>
+<p class="problem">Problem statement: Given a 2D grid where some cells are marked as &quot;pantries&quot; (a source/target location) and the rest are open, ordinary cells, compute, for EVERY cell in the grid, the shortest distance (in steps) to the NEAREST pantry. Example: given a grid with a pantry at one specific cell, cells closer to it should report a smaller distance than cells farther away.</p>
+<p>Approach: a MULTI-SOURCE Breadth-First Search. Rather than running a separate BFS from every individual empty cell (which would be very slow), start a SINGLE BFS with ALL pantry cells already in the queue simultaneously -- this naturally computes the shortest distance from the NEAREST pantry to every other cell in one single pass, since BFS explores in increasing order of distance.</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">LinkedList</span>;
+<span class="k">import</span> java.util.<span class="t">Queue</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">NearestPantryFinder</span> {
+ 
+    <span class="k">private</span> <span class="k">static</span> <span class="k">final</span> <span class="k">int</span> <span class="t">PANTRY_MARKER</span> = <span class="n">1</span>;
+    <span class="k">private</span> <span class="k">static</span> <span class="k">final</span> <span class="k">int</span> <span class="t">UNVISITED_MARKER</span> = -<span class="n">1</span>;
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span>[][] findDistanceToNearestPantry(<span class="k">int</span>[][] gridCells) {
+        <span class="k">int</span> rowCount = gridCells.length;
+        <span class="k">int</span> columnCount = gridCells[<span class="n">0</span>].length;
+        <span class="k">int</span>[][] distanceGrid = <span class="k">new</span> <span class="k">int</span>[rowCount][columnCount];
+        <span class="t">Queue</span>&lt;<span class="k">int</span>[]&gt; cellsToVisit = <span class="k">new</span> <span class="t">LinkedList</span>&lt;&gt;();
+ 
+        <span class="c">// initialize: every pantry starts the BFS at distance 0;</span>
+        <span class="c">// every other cell starts as &quot;unvisited&quot;</span>
+        <span class="k">for</span> (<span class="k">int</span> rowIndex = <span class="n">0</span>; rowIndex &lt; rowCount; rowIndex++) {
+            <span class="k">for</span> (<span class="k">int</span> columnIndex = <span class="n">0</span>; columnIndex &lt; columnCount; columnIndex++) {
+                <span class="k">if</span> (gridCells[rowIndex][columnIndex] == <span class="t">PANTRY_MARKER</span>) {
+                    distanceGrid[rowIndex][columnIndex] = <span class="n">0</span>;
+                    cellsToVisit.offer(<span class="k">new</span> <span class="k">int</span>[]{rowIndex, columnIndex});
+                } <span class="k">else</span> {
+                    distanceGrid[rowIndex][columnIndex] = <span class="t">UNVISITED_MARKER</span>;
+                }
+            }
+        }
+ 
+        <span class="k">int</span>[][] movementDirections = {{-<span class="n">1</span>, <span class="n">0</span>}, {<span class="n">1</span>, <span class="n">0</span>}, {<span class="n">0</span>, -<span class="n">1</span>}, {<span class="n">0</span>, <span class="n">1</span>}};
+ 
+        <span class="c">// multi-source BFS: since every pantry starts in the queue together,</span>
+        <span class="c">// the first time any cell is reached is guaranteed to be via the</span>
+        <span class="c">// SHORTEST path from its NEAREST pantry</span>
+        <span class="k">while</span> (!cellsToVisit.isEmpty()) {
+            <span class="k">int</span>[] currentCell = cellsToVisit.poll();
+            <span class="k">int</span> currentRow = currentCell[<span class="n">0</span>];
+            <span class="k">int</span> currentColumn = currentCell[<span class="n">1</span>];
+ 
+            <span class="k">for</span> (<span class="k">int</span>[] direction : movementDirections) {
+                <span class="k">int</span> neighborRow = currentRow + direction[<span class="n">0</span>];
+                <span class="k">int</span> neighborColumn = currentColumn + direction[<span class="n">1</span>];
+ 
+                <span class="k">boolean</span> isInsideGrid = neighborRow &gt;= <span class="n">0</span> &amp;&amp; neighborRow &lt; rowCount
+                    &amp;&amp; neighborColumn &gt;= <span class="n">0</span> &amp;&amp; neighborColumn &lt; columnCount;
+ 
+                <span class="k">if</span> (isInsideGrid &amp;&amp; distanceGrid[neighborRow][neighborColumn] == <span class="t">UNVISITED_MARKER</span>) {
+                    distanceGrid[neighborRow][neighborColumn] = distanceGrid[currentRow][currentColumn] + <span class="n">1</span>;
+                    cellsToVisit.offer(<span class="k">new</span> <span class="k">int</span>[]{neighborRow, neighborColumn});
+                }
+            }
+        }
+        <span class="k">return</span> distanceGrid;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[][] gridCells = {
+            {<span class="n">0</span>, <span class="n">0</span>, <span class="n">0</span>},
+            {<span class="n">0</span>, <span class="n">1</span>, <span class="n">0</span>},
+            {<span class="n">0</span>, <span class="n">0</span>, <span class="n">0</span>}
+        };
+        <span class="k">int</span>[][] distances = findDistanceToNearestPantry(gridCells);
+        <span class="k">for</span> (<span class="k">int</span>[] row : distances) {
+            <span class="t">System</span>.out.println(java.util.<span class="t">Arrays</span>.toString(row));
+        }
+        <span class="c">// [1, 1, 1]</span>
+        <span class="c">// [1, 0, 1]</span>
+        <span class="c">// [1, 1, 1]</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(rows x columns) time -- every cell is visited exactly once, regardless of how many pantries exist. O(rows x columns) extra space for the distance grid and the BFS queue.</strong></p>
+<p class="question"><strong>Q4. Picking up stones on a 2D grid along a path from the upper-left corner to the lower-right corner: find the path that picks up the most rewards.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/minimum-path-sum/" target="_blank" rel="noopener">Related: Minimum Path Sum &#8599;</a></span></p>
+<p class="problem">Problem statement: Given a 2D grid of reward values, starting at the top-left corner and moving only RIGHT or DOWN at each step, find the maximum total reward collectible on a path to the bottom-right corner. Example: for a grid where each cell holds some reward value, find the path sum that is largest among all valid down/right-only paths.</p>
+<p>Approach: classic 2D dynamic programming -- the best possible total reward reaching any given cell is that cell&#x27;s own reward, plus whichever of its two possible predecessors (the cell above it, or the cell to its left) offers the larger accumulated reward.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">MaximumPathRewardFinder</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> findMaximumPathReward(<span class="k">int</span>[][] rewardGrid) {
+        <span class="k">int</span> rowCount = rewardGrid.length;
+        <span class="k">int</span> columnCount = rewardGrid[<span class="n">0</span>].length;
+ 
+        <span class="c">// bestRewardTable[row][col] = maximum total reward collectible on</span>
+        <span class="c">// any valid path from (0,0) to (row,col)</span>
+        <span class="k">int</span>[][] bestRewardTable = <span class="k">new</span> <span class="k">int</span>[rowCount][columnCount];
+        bestRewardTable[<span class="n">0</span>][<span class="n">0</span>] = rewardGrid[<span class="n">0</span>][<span class="n">0</span>];
+ 
+        <span class="c">// fill in the first row: can only arrive by moving RIGHT</span>
+        <span class="k">for</span> (<span class="k">int</span> columnIndex = <span class="n">1</span>; columnIndex &lt; columnCount; columnIndex++) {
+            bestRewardTable[<span class="n">0</span>][columnIndex] = bestRewardTable[<span class="n">0</span>][columnIndex - <span class="n">1</span>] + rewardGrid[<span class="n">0</span>][columnIndex];
+        }
+        <span class="c">// fill in the first column: can only arrive by moving DOWN</span>
+        <span class="k">for</span> (<span class="k">int</span> rowIndex = <span class="n">1</span>; rowIndex &lt; rowCount; rowIndex++) {
+            bestRewardTable[rowIndex][<span class="n">0</span>] = bestRewardTable[rowIndex - <span class="n">1</span>][<span class="n">0</span>] + rewardGrid[rowIndex][<span class="n">0</span>];
+        }
+ 
+        <span class="c">// fill in the rest of the table: arrive either from ABOVE or from the LEFT</span>
+        <span class="k">for</span> (<span class="k">int</span> rowIndex = <span class="n">1</span>; rowIndex &lt; rowCount; rowIndex++) {
+            <span class="k">for</span> (<span class="k">int</span> columnIndex = <span class="n">1</span>; columnIndex &lt; columnCount; columnIndex++) {
+                <span class="k">int</span> bestPredecessorReward = <span class="t">Math</span>.max(
+                    bestRewardTable[rowIndex - <span class="n">1</span>][columnIndex],   <span class="c">// arrived from above</span>
+                    bestRewardTable[rowIndex][columnIndex - <span class="n">1</span>]);  <span class="c">// arrived from the left</span>
+                bestRewardTable[rowIndex][columnIndex] = bestPredecessorReward + rewardGrid[rowIndex][columnIndex];
+            }
+        }
+        <span class="k">return</span> bestRewardTable[rowCount - <span class="n">1</span>][columnCount - <span class="n">1</span>];
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[][] rewardGrid = {
+            {<span class="n">1</span>, <span class="n">3</span>, <span class="n">1</span>},
+            {<span class="n">1</span>, <span class="n">5</span>, <span class="n">1</span>},
+            {<span class="n">4</span>, <span class="n">2</span>, <span class="n">1</span>}
+        };
+        <span class="t">System</span>.out.println(findMaximumPathReward(rewardGrid)); <span class="c">// 12 (path: 1 -&gt; 3 -&gt; 5 -&gt; 2 -&gt; 1)</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(rows x columns) time and space, using a standard 2D dynamic programming table.</strong></p>
+<h1 id="matrix-manipulation-2">Matrix Manipulation</h1>
+<p class="question"><strong>Q5. Matrix manipulation and different ways of iterating through a matrix.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/spiral-matrix/" target="_blank" rel="noopener">Related: Spiral Matrix &#8599;</a> <a class="lc" href="https://leetcode.com/problems/rotate-image/" target="_blank" rel="noopener">Related: Rotate Image &#8599;</a></span></p>
+<p class="problem">Problem statement: This is a general prompt covering common matrix-traversal techniques. Below are the most frequently asked variations: row-by-row iteration, column-by-column iteration, diagonal iteration, and spiral iteration.</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">ArrayList</span>;
+<span class="k">import</span> java.util.<span class="t">List</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">MatrixIterationExamples</span> {
+ 
+    <span class="c">// Standard row-by-row, left-to-right iteration</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> iterateRowByRow(<span class="k">int</span>[][] sourceMatrix) {
+        <span class="k">for</span> (<span class="k">int</span> rowIndex = <span class="n">0</span>; rowIndex &lt; sourceMatrix.length; rowIndex++) {
+            <span class="k">for</span> (<span class="k">int</span> columnIndex = <span class="n">0</span>; columnIndex &lt; sourceMatrix[<span class="n">0</span>].length; columnIndex++) {
+                <span class="t">System</span>.out.print(sourceMatrix[rowIndex][columnIndex] + <span class="s">&quot; &quot;</span>);
+            }
+        }
+        <span class="t">System</span>.out.println();
+    }
+ 
+    <span class="c">// Column-by-column iteration (top-to-bottom within each column)</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> iterateColumnByColumn(<span class="k">int</span>[][] sourceMatrix) {
+        <span class="k">for</span> (<span class="k">int</span> columnIndex = <span class="n">0</span>; columnIndex &lt; sourceMatrix[<span class="n">0</span>].length; columnIndex++) {
+            <span class="k">for</span> (<span class="k">int</span> rowIndex = <span class="n">0</span>; rowIndex &lt; sourceMatrix.length; rowIndex++) {
+                <span class="t">System</span>.out.print(sourceMatrix[rowIndex][columnIndex] + <span class="s">&quot; &quot;</span>);
+            }
+        }
+        <span class="t">System</span>.out.println();
+    }
+ 
+    <span class="c">// Iterates the matrix in a clockwise SPIRAL, starting from the top-left corner</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="t">List</span>&lt;<span class="t">Integer</span>&gt; iterateInSpiralOrder(<span class="k">int</span>[][] sourceMatrix) {
+        <span class="t">List</span>&lt;<span class="t">Integer</span>&gt; spiralResult = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
+        <span class="k">int</span> topBoundary = <span class="n">0</span>;
+        <span class="k">int</span> bottomBoundary = sourceMatrix.length - <span class="n">1</span>;
+        <span class="k">int</span> leftBoundary = <span class="n">0</span>;
+        <span class="k">int</span> rightBoundary = sourceMatrix[<span class="n">0</span>].length - <span class="n">1</span>;
+ 
+        <span class="k">while</span> (topBoundary &lt;= bottomBoundary &amp;&amp; leftBoundary &lt;= rightBoundary) {
+            <span class="c">// traverse the top row, left to right</span>
+            <span class="k">for</span> (<span class="k">int</span> columnIndex = leftBoundary; columnIndex &lt;= rightBoundary; columnIndex++) {
+                spiralResult.add(sourceMatrix[topBoundary][columnIndex]);
+            }
+            topBoundary++;
+ 
+            <span class="c">// traverse the right column, top to bottom</span>
+            <span class="k">for</span> (<span class="k">int</span> rowIndex = topBoundary; rowIndex &lt;= bottomBoundary; rowIndex++) {
+                spiralResult.add(sourceMatrix[rowIndex][rightBoundary]);
+            }
+            rightBoundary--;
+ 
+            <span class="c">// traverse the bottom row, right to left (if any rows remain)</span>
+            <span class="k">if</span> (topBoundary &lt;= bottomBoundary) {
+                <span class="k">for</span> (<span class="k">int</span> columnIndex = rightBoundary; columnIndex &gt;= leftBoundary; columnIndex--) {
+                    spiralResult.add(sourceMatrix[bottomBoundary][columnIndex]);
+                }
+                bottomBoundary--;
+            }
+ 
+            <span class="c">// traverse the left column, bottom to top (if any columns remain)</span>
+            <span class="k">if</span> (leftBoundary &lt;= rightBoundary) {
+                <span class="k">for</span> (<span class="k">int</span> rowIndex = bottomBoundary; rowIndex &gt;= topBoundary; rowIndex--) {
+                    spiralResult.add(sourceMatrix[rowIndex][leftBoundary]);
+                }
+                leftBoundary++;
+            }
+        }
+        <span class="k">return</span> spiralResult;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[][] sourceMatrix = {
+            {<span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>},
+            {<span class="n">4</span>, <span class="n">5</span>, <span class="n">6</span>},
+            {<span class="n">7</span>, <span class="n">8</span>, <span class="n">9</span>}
+        };
+        <span class="t">System</span>.out.println(iterateInSpiralOrder(sourceMatrix));
+        <span class="c">// [1, 2, 3, 6, 9, 8, 7, 4, 5]</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(rows x columns) time for every iteration style shown, since each visits every cell exactly once. O(1) extra space for row/column iteration; O(rows x columns) space for spiral iteration, to store the result list.</strong></p>
+<p class="question"><strong>Q6. Calculate the maximum average of students&#x27; scores in a 2D array.</strong></p>
+<p class="problem">Problem statement: Given a 2D array where each row represents one student&#x27;s scores across several subjects/tests, find the HIGHEST average score among all students. Example: findMaximumStudentAverage({{90, 85, 95}, {70, 75, 80}, {100, 90, 95}}) should return the average of the third student&#x27;s scores (since 100+90+95 = 285, giving the highest average of the three students).</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">MaximumStudentAverageFinder</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">double</span> findMaximumStudentAverage(<span class="k">int</span>[][] studentScoresGrid) {
+        <span class="k">double</span> highestAverageFound = <span class="t">Double</span>.<span class="t">MIN_VALUE</span>;
+ 
+        <span class="k">for</span> (<span class="k">int</span>[] currentStudentScores : studentScoresGrid) {
+            <span class="k">int</span> scoreSum = <span class="n">0</span>;
+            <span class="k">for</span> (<span class="k">int</span> currentScore : currentStudentScores) {
+                scoreSum += currentScore;
+            }
+            <span class="k">double</span> currentStudentAverage = (<span class="k">double</span>) scoreSum / currentStudentScores.length;
+            highestAverageFound = <span class="t">Math</span>.max(highestAverageFound, currentStudentAverage);
+        }
+        <span class="k">return</span> highestAverageFound;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[][] studentScoresGrid = {
+            {<span class="n">90</span>, <span class="n">85</span>, <span class="n">95</span>},
+            {<span class="n">70</span>, <span class="n">75</span>, <span class="n">80</span>},
+            {<span class="n">100</span>, <span class="n">90</span>, <span class="n">95</span>}
+        };
+        <span class="t">System</span>.out.println(findMaximumStudentAverage(studentScoresGrid)); <span class="c">// 95.0</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(rows x columns) time, since every score must be examined at least once. O(1) extra space.</strong></p>
+<p class="question"><strong>Q7. Convert a 4x4 matrix into a database table (list of rows/records).</strong></p>
+<p class="problem">Problem statement: Given a 2D matrix, convert it into a form suitable for representing as database TABLE rows -- typically a List of Lists (or a List of record/row objects), where each inner list corresponds to one table row, matching how a ResultSet or a CSV export would typically be structured.</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">ArrayList</span>;
+<span class="k">import</span> java.util.<span class="t">List</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">MatrixToTableConverter</span> {
+ 
+    <span class="c">// Converts a 2D int matrix into a List of Lists, one inner list per row --</span>
+    <span class="c">// matching the row-oriented structure expected by most database/CSV APIs</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="t">List</span>&lt;<span class="t">List</span>&lt;<span class="t">Integer</span>&gt;&gt; convertMatrixToTableRows(<span class="k">int</span>[][] sourceMatrix) {
+        <span class="t">List</span>&lt;<span class="t">List</span>&lt;<span class="t">Integer</span>&gt;&gt; tableRows = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
+ 
+        <span class="k">for</span> (<span class="k">int</span>[] currentMatrixRow : sourceMatrix) {
+            <span class="t">List</span>&lt;<span class="t">Integer</span>&gt; currentTableRow = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
+            <span class="k">for</span> (<span class="k">int</span> currentValue : currentMatrixRow) {
+                currentTableRow.add(currentValue);
+            }
+            tableRows.add(currentTableRow);
+        }
+        <span class="k">return</span> tableRows;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[][] sourceMatrix = {
+            {<span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>, <span class="n">4</span>},
+            {<span class="n">5</span>, <span class="n">6</span>, <span class="n">7</span>, <span class="n">8</span>},
+            {<span class="n">9</span>, <span class="n">10</span>, <span class="n">11</span>, <span class="n">12</span>},
+            {<span class="n">13</span>, <span class="n">14</span>, <span class="n">15</span>, <span class="n">16</span>}
+        };
+        <span class="t">List</span>&lt;<span class="t">List</span>&lt;<span class="t">Integer</span>&gt;&gt; tableRows = convertMatrixToTableRows(sourceMatrix);
+        <span class="k">for</span> (<span class="t">List</span>&lt;<span class="t">Integer</span>&gt; currentRow : tableRows) {
+            <span class="t">System</span>.out.println(currentRow);
+        }
+        <span class="c">// [1, 2, 3, 4]</span>
+        <span class="c">// [5, 6, 7, 8]</span>
+        <span class="c">// [9, 10, 11, 12]</span>
+        <span class="c">// [13, 14, 15, 16]</span>
+    }
+}</code></pre>
+<div class="callout"><strong>Note: </strong>In a real application, this would typically be followed by using a PreparedStatement (see the earlier document in this interview-guide series) to INSERT each row into an actual database table, iterating over tableRows and binding each row&#x27;s values to the statement&#x27;s parameters in a batch.</div>
+<h1 id="coin-change-3">Coin Change</h1>
+<p class="question"><strong>Q8. Given an array of coin values [1, 3, 6] and a target value, return the minimum number of coins that add up to that value.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/coin-change/" target="_blank" rel="noopener">Coin Change &#8599;</a></span></p>
+<p class="problem">Problem statement: Given an array of available coin denominations and a target amount, find the MINIMUM number of coins needed to make exactly that amount (assuming an unlimited supply of each denomination). If the amount cannot be made with the given denominations, return -1. Example: findMinimumCoinsNeeded({1, 3, 6}, 8) should return 2 (using two coins: 6 + ... actually 3+3+ ... the true minimum for 8 using {1,3,6} is 3 coins: 6+1+1, or checking further -- the algorithm below computes this correctly regardless).</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">Arrays</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">MinimumCoinsCalculator</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> findMinimumCoinsNeeded(<span class="k">int</span>[] coinDenominations, <span class="k">int</span> targetAmount) {
+        <span class="c">// minimumCoinsForAmount[amount] = fewest coins needed to make &quot;amount&quot;</span>
+        <span class="k">int</span>[] minimumCoinsForAmount = <span class="k">new</span> <span class="k">int</span>[targetAmount + <span class="n">1</span>];
+        <span class="c">// initialize every amount as &quot;impossible&quot; (a large sentinel value),</span>
+        <span class="c">// except amount 0, which needs exactly zero coins</span>
+        <span class="t">Arrays</span>.fill(minimumCoinsForAmount, targetAmount + <span class="n">1</span>);
+        minimumCoinsForAmount[<span class="n">0</span>] = <span class="n">0</span>;
+ 
+        <span class="k">for</span> (<span class="k">int</span> currentAmount = <span class="n">1</span>; currentAmount &lt;= targetAmount; currentAmount++) {
+            <span class="k">for</span> (<span class="k">int</span> currentDenomination : coinDenominations) {
+                <span class="k">if</span> (currentDenomination &lt;= currentAmount) {
+                    <span class="k">int</span> coinsIfUsingThisDenomination =
+                        minimumCoinsForAmount[currentAmount - currentDenomination] + <span class="n">1</span>;
+                    minimumCoinsForAmount[currentAmount] =
+                        <span class="t">Math</span>.min(minimumCoinsForAmount[currentAmount], coinsIfUsingThisDenomination);
+                }
+            }
+        }
+ 
+        <span class="k">int</span> finalResult = minimumCoinsForAmount[targetAmount];
+        <span class="k">return</span> finalResult &gt; targetAmount ? -<span class="n">1</span> : finalResult; <span class="c">// still the sentinel value means &quot;impossible&quot;</span>
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(findMinimumCoinsNeeded(<span class="k">new</span> <span class="k">int</span>[]{<span class="n">1</span>, <span class="n">3</span>, <span class="n">6</span>}, <span class="n">8</span>)); <span class="c">// 3 (6 + 1 + 1)</span>
+        <span class="t">System</span>.out.println(findMinimumCoinsNeeded(<span class="k">new</span> <span class="k">int</span>[]{<span class="n">2</span>}, <span class="n">3</span>));      <span class="c">// -1 (impossible with only 2s)</span>
+    }
+}</code></pre>
+<div class="callout"><strong>Note: </strong>This problem cannot generally be solved correctly with a simple greedy approach (always picking the largest denomination that fits) -- see the earlier document in this series for a concrete counter-example. Dynamic programming, as shown here, guarantees the true minimum regardless of which specific denominations are given.</div>
+<p class="complexity"><strong>Complexity: O(targetAmount x numberOfDenominations) time and O(targetAmount) space.</strong></p>
+<p class="question"><strong>Q9. Coin Change with some modifications -- variations including subarrays with K different integers, and decode-ways variations.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/coin-change-ii/" target="_blank" rel="noopener">Related: Coin Change Ii &#8599;</a> <a class="lc" href="https://leetcode.com/problems/subarrays-with-k-different-integers/" target="_blank" rel="noopener">Subarrays With K Different Integers &#8599;</a> <a class="lc" href="https://leetcode.com/problems/decode-ways/" target="_blank" rel="noopener">Decode Ways &#8599;</a></span></p>
+<p class="problem">Problem statement: This entry in the original list groups together several distinct LeetCode-style problems that are commonly asked as VARIATIONS on a base problem, testing whether a candidate can adapt a known technique to a modified requirement. Two representative modifications are shown below.</p>
+<h2 id="variation-coin-change-ii-count-the-number-of-ways-to-make-an-4">Variation: Coin Change II -- count the NUMBER OF WAYS to make an amount (not the minimum coins)</h2>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">CoinChangeWaysCounter</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> countWaysToMakeAmount(<span class="k">int</span>[] coinDenominations, <span class="k">int</span> targetAmount) {
+        <span class="c">// waysToMakeAmount[amount] = number of distinct combinations that sum to &quot;amount&quot;</span>
+        <span class="k">int</span>[] waysToMakeAmount = <span class="k">new</span> <span class="k">int</span>[targetAmount + <span class="n">1</span>];
+        waysToMakeAmount[<span class="n">0</span>] = <span class="n">1</span>; <span class="c">// exactly one way to make amount 0: use no coins</span>
+ 
+        <span class="c">// process denominations OUTER, amounts INNER -- this ordering ensures</span>
+        <span class="c">// each combination of coins is counted only ONCE (order doesn&#x27;t matter)</span>
+        <span class="k">for</span> (<span class="k">int</span> currentDenomination : coinDenominations) {
+            <span class="k">for</span> (<span class="k">int</span> currentAmount = currentDenomination; currentAmount &lt;= targetAmount; currentAmount++) {
+                waysToMakeAmount[currentAmount] += waysToMakeAmount[currentAmount - currentDenomination];
+            }
+        }
+        <span class="k">return</span> waysToMakeAmount[targetAmount];
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(countWaysToMakeAmount(<span class="k">new</span> <span class="k">int</span>[]{<span class="n">1</span>, <span class="n">2</span>, <span class="n">5</span>}, <span class="n">5</span>)); <span class="c">// 4</span>
+        <span class="c">// The 4 ways: 5; 2+2+1; 2+1+1+1; 1+1+1+1+1</span>
+    }
+}</code></pre>
+<h2 id="variation-subarrays-with-exactly-k-distinct-integers-4">Variation: Subarrays with exactly K distinct integers</h2>
+<p class="problem">Problem statement: Given an array and an integer targetDistinctCount, count the number of subarrays containing EXACTLY targetDistinctCount distinct values.</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">HashMap</span>;
+<span class="k">import</span> java.util.<span class="t">Map</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">ExactlyKDistinctSubarrayCounter</span> {
+ 
+    <span class="c">// Helper: counts subarrays with AT MOST maxDistinctCount distinct values</span>
+    <span class="k">private</span> <span class="k">static</span> <span class="k">int</span> countSubarraysWithAtMostKDistinct(<span class="k">int</span>[] numberArray, <span class="k">int</span> maxDistinctCount) {
+        <span class="t">Map</span>&lt;<span class="t">Integer</span>, <span class="t">Integer</span>&gt; valueFrequencyInWindow = <span class="k">new</span> <span class="t">HashMap</span>&lt;&gt;();
+        <span class="k">int</span> leftBoundary = <span class="n">0</span>;
+        <span class="k">int</span> subarrayCount = <span class="n">0</span>;
+ 
+        <span class="k">for</span> (<span class="k">int</span> rightBoundary = <span class="n">0</span>; rightBoundary &lt; numberArray.length; rightBoundary++) {
+            valueFrequencyInWindow.merge(numberArray[rightBoundary], <span class="n">1</span>, <span class="t">Integer</span>::sum);
+ 
+            <span class="c">// shrink the window while it has TOO MANY distinct values</span>
+            <span class="k">while</span> (valueFrequencyInWindow.size() &gt; maxDistinctCount) {
+                <span class="k">int</span> leftValue = numberArray[leftBoundary];
+                valueFrequencyInWindow.put(leftValue, valueFrequencyInWindow.get(leftValue) - <span class="n">1</span>);
+                <span class="k">if</span> (valueFrequencyInWindow.get(leftValue) == <span class="n">0</span>) {
+                    valueFrequencyInWindow.remove(leftValue);
+                }
+                leftBoundary++;
+            }
+            <span class="c">// every subarray ending at rightBoundary and starting anywhere</span>
+            <span class="c">// from leftBoundary onward has AT MOST maxDistinctCount distinct values</span>
+            subarrayCount += rightBoundary - leftBoundary + <span class="n">1</span>;
+        }
+        <span class="k">return</span> subarrayCount;
+    }
+ 
+    <span class="c">// &quot;Exactly K&quot; = &quot;at most K&quot; minus &quot;at most (K-1)&quot; -- a common counting trick</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> countSubarraysWithExactlyKDistinct(<span class="k">int</span>[] numberArray, <span class="k">int</span> targetDistinctCount) {
+        <span class="k">return</span> countSubarraysWithAtMostKDistinct(numberArray, targetDistinctCount)
+             - countSubarraysWithAtMostKDistinct(numberArray, targetDistinctCount - <span class="n">1</span>);
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[] numberArray = {<span class="n">1</span>, <span class="n">2</span>, <span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>};
+        <span class="t">System</span>.out.println(countSubarraysWithExactlyKDistinct(numberArray, <span class="n">2</span>)); <span class="c">// 7</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time for both variations (each uses a sliding window that processes every element a bounded number of times). O(k) extra space for the frequency map, where k is the number of distinct values.</strong></p>
+<h1 id="top-k-most-frequent-elements-4">Top-K &amp; Most Frequent Elements</h1>
+<p class="question"><strong>Q10. Return the K largest numbers. (And, separately, find the top K highest stock prices in a stream of stocks.)</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/kth-largest-element-in-an-array/" target="_blank" rel="noopener">Related: Kth Largest Element In An Array &#8599;</a></span></p>
+<p class="problem">Problem statement: Given an array (or a live STREAM) of numbers and an integer topCount, return the topCount largest values seen. Example: findKLargestNumbers({3, 2, 1, 5, 6, 4}, 2) should return {5, 6} (in some order).</p>
+<p>Approach: maintain a min-heap capped at size topCount. This guarantees the heap always holds exactly the topCount largest values seen so far, with the smallest of those at the top -- efficient even for a live, unbounded STREAM of incoming values, since the heap never needs to grow beyond topCount elements.</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">List</span>;
+<span class="k">import</span> java.util.<span class="t">PriorityQueue</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">KLargestNumbersFinder</span> {
+ 
+    <span class="c">// Works equally well whether numberStream is a finite array&#x27;s worth of</span>
+    <span class="c">// values or a genuinely unbounded, live stream -- values can be added</span>
+    <span class="c">// one at a time via addNumber(), and the current top-K are always available</span>
+    <span class="k">private</span> <span class="k">final</span> <span class="t">PriorityQueue</span>&lt;<span class="t">Integer</span>&gt; smallestOnTopHeap = <span class="k">new</span> <span class="t">PriorityQueue</span>&lt;&gt;();
+    <span class="k">private</span> <span class="k">final</span> <span class="k">int</span> topCount;
+ 
+    <span class="k">public</span> <span class="t">KLargestNumbersFinder</span>(<span class="k">int</span> topCount) {
+        <span class="k">this</span>.topCount = topCount;
+    }
+ 
+    <span class="k">public</span> <span class="k">void</span> addNumber(<span class="k">int</span> newValue) {
+        smallestOnTopHeap.offer(newValue);
+        <span class="k">if</span> (smallestOnTopHeap.size() &gt; topCount) {
+            smallestOnTopHeap.poll(); <span class="c">// evict the smallest, keeping only the top &quot;topCount&quot; values</span>
+        }
+    }
+ 
+    <span class="k">public</span> <span class="t">List</span>&lt;<span class="t">Integer</span>&gt; getCurrentTopValues() {
+        <span class="k">return</span> <span class="t">List</span>.copyOf(smallestOnTopHeap);
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">KLargestNumbersFinder</span> topFinder = <span class="k">new</span> <span class="t">KLargestNumbersFinder</span>(<span class="n">2</span>);
+        <span class="k">for</span> (<span class="k">int</span> currentValue : <span class="k">new</span> <span class="k">int</span>[]{<span class="n">3</span>, <span class="n">2</span>, <span class="n">1</span>, <span class="n">5</span>, <span class="n">6</span>, <span class="n">4</span>}) {
+            topFinder.addNumber(currentValue);
+        }
+        <span class="t">System</span>.out.println(topFinder.getCurrentTopValues()); <span class="c">// [5, 6] (order may vary)</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(log(topCount)) time per insertion, O(n log(topCount)) time overall for n incoming values -- substantially better than sorting the entire input (O(n log n)) when topCount is small relative to n. O(topCount) extra space.</strong></p>
+<p class="question"><strong>Q11. Find the K most frequently occurring elements.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/top-k-frequent-elements/" target="_blank" rel="noopener">Top K Frequent Elements &#8599;</a></span></p>
+<p class="problem">Problem statement: Given an array of integers and an integer topCount, return the topCount elements that occur MOST FREQUENTLY. Example: findKMostFrequentElements({1, 1, 1, 2, 2, 3}, 2) should return {1, 2} (in some order), since 1 occurs 3 times and 2 occurs 2 times, more than any other value.</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">ArrayList</span>;
+<span class="k">import</span> java.util.<span class="t">HashMap</span>;
+<span class="k">import</span> java.util.<span class="t">List</span>;
+<span class="k">import</span> java.util.<span class="t">Map</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">KMostFrequentElementsFinder</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="t">List</span>&lt;<span class="t">Integer</span>&gt; findKMostFrequentElements(<span class="k">int</span>[] numberArray, <span class="k">int</span> topCount) {
+        <span class="t">Map</span>&lt;<span class="t">Integer</span>, <span class="t">Integer</span>&gt; valueToFrequency = <span class="k">new</span> <span class="t">HashMap</span>&lt;&gt;();
+        <span class="k">for</span> (<span class="k">int</span> currentValue : numberArray) {
+            valueToFrequency.merge(currentValue, <span class="n">1</span>, <span class="t">Integer</span>::sum);
+        }
+ 
+        <span class="c">// bucketsByFrequency[i] = list of values that occur EXACTLY i times</span>
+        <span class="c">// (frequency can never exceed the array&#x27;s total length)</span>
+        <span class="t">List</span>&lt;<span class="t">Integer</span>&gt;[] bucketsByFrequency = <span class="k">new</span> <span class="t">List</span>[numberArray.length + <span class="n">1</span>];
+        <span class="k">for</span> (<span class="t">Map</span>.<span class="t">Entry</span>&lt;<span class="t">Integer</span>, <span class="t">Integer</span>&gt; currentEntry : valueToFrequency.entrySet()) {
+            <span class="k">int</span> occurrenceCount = currentEntry.getValue();
+            <span class="k">if</span> (bucketsByFrequency[occurrenceCount] == <span class="k">null</span>) {
+                bucketsByFrequency[occurrenceCount] = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
+            }
+            bucketsByFrequency[occurrenceCount].add(currentEntry.getKey());
+        }
+ 
+        <span class="t">List</span>&lt;<span class="t">Integer</span>&gt; resultValues = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
+        <span class="c">// walk the buckets from HIGHEST frequency down until we have enough elements</span>
+        <span class="k">for</span> (<span class="k">int</span> frequencyLevel = bucketsByFrequency.length - <span class="n">1</span>;
+                 frequencyLevel &gt;= <span class="n">0</span> &amp;&amp; resultValues.size() &lt; topCount; frequencyLevel--) {
+            <span class="k">if</span> (bucketsByFrequency[frequencyLevel] != <span class="k">null</span>) {
+                resultValues.addAll(bucketsByFrequency[frequencyLevel]);
+            }
+        }
+        <span class="k">return</span> resultValues.subList(<span class="n">0</span>, <span class="t">Math</span>.min(topCount, resultValues.size()));
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[] numberArray = {<span class="n">1</span>, <span class="n">1</span>, <span class="n">1</span>, <span class="n">2</span>, <span class="n">2</span>, <span class="n">3</span>};
+        <span class="t">System</span>.out.println(findKMostFrequentElements(numberArray, <span class="n">2</span>)); <span class="c">// [1, 2]</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time -- the bucket-sort technique avoids the O(n log n) cost of a full comparison-based sort by frequency, since frequency values are bounded by the array&#x27;s own length. O(n) extra space for the frequency map and buckets.</strong></p><div class="pager"><span><a href="03-arrays-core-algorithms.html">&larr; Arrays &amp; Core Algorithms</a></span><span><a href="05-linked-list.html">Linked Lists &rarr;</a></span></div></main></div></body></html>

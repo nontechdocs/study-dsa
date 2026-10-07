@@ -1,0 +1,499 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Math, Numbers &amp; Basic Algorithms</title><link rel="stylesheet" href="../assets/style.css"></head><body>
+<header class="top"><a href="../index.html">&#8962; Index</a><span class="sp"></span><strong>Math, Numbers &amp; Basic Algorithms</strong></header>
+<div class="layout"><nav class="toc"><a href="#fibonacci-sequence-0">Fibonacci Sequence</a><a href="#factorial-1">Factorial</a><a href="#greatest-common-divisor-2">Greatest Common Divisor</a><a href="#palindrome-checking-3">Palindrome Checking</a><a href="#fizzbuzz-4">FizzBuzz</a><a href="#divisibility-powers-5">Divisibility &amp; Powers</a><a href="#pattern-shape-printing-6">Pattern &amp; Shape Printing</a><a href="#miscellaneous-math-logic-warm-ups-7">Miscellaneous Math &amp; Logic Warm-ups</a></nav><main><h1 class="title">Java Programming Interview Questions — Document 1</h1><p class="sub">Math, Numbers &amp;amp; Basic Algorithms</p><p>This document answers the math, number-manipulation, and basic-algorithm coding questions from the supplied question list. Every problem includes a clear problem statement, a worked example, a complete Java solution with meaningful, descriptive variable/method names (minimum 8 characters), thorough inline comments, and a time/space complexity analysis.</p>
+<p>This is Document 1 of a multi-document set covering all 158 questions from the original spreadsheet, organized by topic/data-structure area. Duplicate or near-duplicate questions from the original list have been consolidated into a single, thorough answer, with a note where the same question was asked more than once.</p>
+<h1 id="fibonacci-sequence-0">Fibonacci Sequence</h1>
+<p class="question"><strong>Q1. Write a program to calculate the Fibonacci sequence. (Asked multiple times in the original list, including &quot;calculate the nth Fibonacci number&quot; and &quot;print Fibonacci to n using recursion.&quot;)</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/fibonacci-number/" target="_blank" rel="noopener">Fibonacci Number &#8599;</a></span></p>
+<p class="problem">Problem statement: The Fibonacci sequence is defined as fibonacciSequence(0) = 0, fibonacciSequence(1) = 1, and fibonacciSequence(position) = fibonacciSequence(position - 1) + fibonacciSequence(position - 2) for every position greater than 1. Write a program that, given a position (index) in the sequence, returns the Fibonacci number at that position. Example: position = 6 should return 8, since the sequence begins 0, 1, 1, 2, 3, 5, 8, 13, ...</p>
+<h2 id="recursive-solution-1">Recursive solution</h2>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">FibonacciCalculator</span> {
+ 
+    <span class="c">// Recursive solution: directly mirrors the mathematical definition,</span>
+    <span class="c">// but recomputes the SAME smaller values many times, making it very slow</span>
+    <span class="c">// for larger inputs (exponential time complexity).</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">long</span> calculateFibonacciRecursive(<span class="k">int</span> sequencePosition) {
+        <span class="c">// base cases: fibonacciSequence(0) = 0, fibonacciSequence(1) = 1</span>
+        <span class="k">if</span> (sequencePosition &lt;= <span class="n">1</span>) {
+            <span class="k">return</span> sequencePosition;
+        }
+        <span class="c">// recursive case: sum of the two preceding Fibonacci numbers</span>
+        <span class="k">return</span> calculateFibonacciRecursive(sequencePosition - <span class="n">1</span>)
+             + calculateFibonacciRecursive(sequencePosition - <span class="n">2</span>);
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span> targetPosition = <span class="n">6</span>;
+        <span class="k">long</span> fibonacciResult = calculateFibonacciRecursive(targetPosition);
+        <span class="t">System</span>.out.println(<span class="s">&quot;Fibonacci number at position &quot;</span> + targetPosition + <span class="s">&quot; is &quot;</span> + fibonacciResult);
+        <span class="c">// Expected output: Fibonacci number at position 6 is 8</span>
+    }
+}</code></pre>
+<h2 id="iterative-solution-efficient-preferred-in-interviews-1">Iterative solution (efficient, preferred in interviews)</h2>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">FibonacciCalculator</span> {
+ 
+    <span class="c">// Iterative solution: builds the sequence bottom-up, keeping only the</span>
+    <span class="c">// two most recently computed values in memory at any time.</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">long</span> calculateFibonacciIterative(<span class="k">int</span> sequencePosition) {
+        <span class="k">if</span> (sequencePosition &lt;= <span class="n">1</span>) {
+            <span class="k">return</span> sequencePosition;
+        }
+ 
+        <span class="k">long</span> previousValue = <span class="n">0</span>;  <span class="c">// represents fibonacciSequence(position - 2)</span>
+        <span class="k">long</span> currentValue = <span class="n">1</span>;   <span class="c">// represents fibonacciSequence(position - 1)</span>
+ 
+        <span class="c">// walk forward from position 2 up to the requested position,</span>
+        <span class="c">// computing each next Fibonacci number from the previous two</span>
+        <span class="k">for</span> (<span class="k">int</span> stepIndex = <span class="n">2</span>; stepIndex &lt;= sequencePosition; stepIndex++) {
+            <span class="k">long</span> nextValue = previousValue + currentValue;
+            previousValue = currentValue;
+            currentValue = nextValue;
+        }
+        <span class="k">return</span> currentValue;
+    }
+ 
+    <span class="c">// Prints the entire Fibonacci sequence from position 0 up to (and</span>
+    <span class="c">// including) upperLimit -- answers the &quot;print Fibonacci to n&quot; variant</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> printFibonacciSequenceUpTo(<span class="k">int</span> upperLimit) {
+        <span class="k">for</span> (<span class="k">int</span> currentPosition = <span class="n">0</span>; currentPosition &lt;= upperLimit; currentPosition++) {
+            <span class="t">System</span>.out.print(calculateFibonacciIterative(currentPosition) + <span class="s">&quot; &quot;</span>);
+        }
+        <span class="t">System</span>.out.println();
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        printFibonacciSequenceUpTo(<span class="n">10</span>);
+        <span class="c">// Expected output: 0 1 1 2 3 5 8 13 21 34 55</span>
+    }
+}</code></pre>
+<div class="callout"><strong>Note: </strong>The naive recursive solution has time complexity O(2^n), because it recomputes the exact same smaller sub-values repeatedly (an interviewer will often ask you to identify and explain this inefficiency). The iterative solution runs in O(n) time and O(1) extra space, since it only ever needs to remember the two most recent values. A memoized recursive solution (caching each computed value in an array or HashMap) also achieves O(n) time while keeping the more intuitive recursive structure, and is a strong answer if the interviewer specifically wants to see both recursion AND good performance.</div>
+<h1 id="factorial-1">Factorial</h1>
+<p class="question"><strong>Q2. Write the algorithm for factorial.</strong></p>
+<p class="problem">Problem statement: The factorial of a non-negative integer inputNumber, written inputNumber!, is the product of every positive integer less than or equal to inputNumber (with the special case 0! = 1). Write a program that computes inputNumber!. Example: calculateFactorial(5) should return 120, since 5! = 5 x 4 x 3 x 2 x 1 = 120.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">FactorialCalculator</span> {
+ 
+    <span class="c">// Iterative solution: multiplies every integer from 2 up to inputNumber</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">long</span> calculateFactorialIterative(<span class="k">int</span> inputNumber) {
+        <span class="k">if</span> (inputNumber &lt; <span class="n">0</span>) {
+            <span class="k">throw</span> <span class="k">new</span> <span class="t">IllegalArgumentException</span>(<span class="s">&quot;Factorial is not defined for negative numbers&quot;</span>);
+        }
+        <span class="k">long</span> factorialResult = <span class="n">1</span>;
+        <span class="k">for</span> (<span class="k">int</span> currentFactor = <span class="n">2</span>; currentFactor &lt;= inputNumber; currentFactor++) {
+            factorialResult *= currentFactor;
+        }
+        <span class="k">return</span> factorialResult;
+    }
+ 
+    <span class="c">// Recursive solution: directly mirrors the mathematical definition</span>
+    <span class="c">// inputNumber! = inputNumber * (inputNumber - 1)!</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">long</span> calculateFactorialRecursive(<span class="k">int</span> inputNumber) {
+        <span class="k">if</span> (inputNumber &lt; <span class="n">0</span>) {
+            <span class="k">throw</span> <span class="k">new</span> <span class="t">IllegalArgumentException</span>(<span class="s">&quot;Factorial is not defined for negative numbers&quot;</span>);
+        }
+        <span class="k">if</span> (inputNumber == <span class="n">0</span>) {
+            <span class="k">return</span> <span class="n">1</span>; <span class="c">// base case: 0! = 1</span>
+        }
+        <span class="k">return</span> inputNumber * calculateFactorialRecursive(inputNumber - <span class="n">1</span>);
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(calculateFactorialIterative(<span class="n">5</span>)); <span class="c">// 120</span>
+        <span class="t">System</span>.out.println(calculateFactorialRecursive(<span class="n">5</span>)); <span class="c">// 120</span>
+    }
+}</code></pre>
+<div class="callout"><strong>Note: </strong>For very large values of inputNumber, the result overflows a long (which can hold values only up to about 9.2 quintillion, i.e. roughly 20!). For genuinely large factorials, use java.math.BigInteger instead, which supports arbitrary-precision integer arithmetic with no overflow risk.</div>
+<p class="complexity"><strong>Complexity: O(n) time and O(1) extra space for the iterative version; O(n) time and O(n) stack space for the recursive version (due to the call-stack depth).</strong></p>
+<h1 id="greatest-common-divisor-2">Greatest Common Divisor</h1>
+<p class="question"><strong>Q3. Find the Greatest Common Divisor (GCD) of two numbers.</strong></p>
+<p class="problem">Problem statement: Given two positive integers, find their greatest common divisor — the largest positive integer that evenly divides both numbers with no remainder. Example: findGreatestCommonDivisor(48, 18) should return 6, since 6 is the largest number that divides both 48 and 18 evenly.</p>
+<p>Approach: the Euclidean algorithm computes the GCD extremely efficiently, based on the mathematical fact that the GCD of two numbers also evenly divides their difference (and, more usefully here, their remainder under division): gcd(firstNumber, secondNumber) equals gcd(secondNumber, firstNumber % secondNumber), and this process repeats until the second number becomes zero, at which point the first number is the answer.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">GreatestCommonDivisorFinder</span> {
+ 
+    <span class="c">// Euclidean algorithm, implemented iteratively</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> findGreatestCommonDivisor(<span class="k">int</span> firstNumber, <span class="k">int</span> secondNumber) {
+        <span class="k">while</span> (secondNumber != <span class="n">0</span>) {
+            <span class="k">int</span> remainderValue = firstNumber % secondNumber;
+            firstNumber = secondNumber;
+            secondNumber = remainderValue;
+        }
+        <span class="k">return</span> firstNumber; <span class="c">// once secondNumber reaches 0, firstNumber holds the GCD</span>
+    }
+ 
+    <span class="c">// Equivalent recursive version, mirroring the mathematical recurrence directly</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> findGreatestCommonDivisorRecursive(<span class="k">int</span> firstNumber, <span class="k">int</span> secondNumber) {
+        <span class="k">if</span> (secondNumber == <span class="n">0</span>) {
+            <span class="k">return</span> firstNumber; <span class="c">// base case</span>
+        }
+        <span class="k">return</span> findGreatestCommonDivisorRecursive(secondNumber, firstNumber % secondNumber);
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(findGreatestCommonDivisor(<span class="n">48</span>, <span class="n">18</span>)); <span class="c">// 6</span>
+        <span class="t">System</span>.out.println(findGreatestCommonDivisor(<span class="n">17</span>, <span class="n">5</span>));  <span class="c">// 1 (numbers are &quot;coprime&quot;)</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(log(min(firstNumber, secondNumber))) time — the Euclidean algorithm converges remarkably quickly, since the remainder shrinks by at least a factor of roughly two every two steps. O(1) extra space for the iterative version.</strong></p>
+<h1 id="palindrome-checking-3">Palindrome Checking</h1>
+<p class="question"><strong>Q4. Write a program to check whether a number or string is a palindrome.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/palindrome-number/" target="_blank" rel="noopener">Palindrome Number &#8599;</a></span></p>
+<p class="problem">Problem statement: A palindrome reads the same forwards and backwards (e.g. &quot;racecar&quot;, or the number 12321). Write a program that determines whether a given input is a palindrome.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">PalindromeChecker</span> {
+ 
+    <span class="c">// Checks whether a String reads the same forwards and backwards,</span>
+    <span class="c">// using two pointers moving toward each other from opposite ends</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">boolean</span> isStringPalindrome(<span class="t">String</span> inputText) {
+        <span class="k">int</span> leftIndex = <span class="n">0</span>;
+        <span class="k">int</span> rightIndex = inputText.length() - <span class="n">1</span>;
+ 
+        <span class="k">while</span> (leftIndex &lt; rightIndex) {
+            <span class="k">if</span> (inputText.charAt(leftIndex) != inputText.charAt(rightIndex)) {
+                <span class="k">return</span> <span class="k">false</span>; <span class="c">// mismatch found -- not a palindrome</span>
+            }
+            leftIndex++;
+            rightIndex--;
+        }
+        <span class="k">return</span> <span class="k">true</span>; <span class="c">// every pair of characters matched</span>
+    }
+ 
+    <span class="c">// Checks whether an integer reads the same forwards and backwards,</span>
+    <span class="c">// by reversing its digits and comparing to the original value</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">boolean</span> isNumberPalindrome(<span class="k">int</span> inputNumber) {
+        <span class="k">if</span> (inputNumber &lt; <span class="n">0</span>) {
+            <span class="k">return</span> <span class="k">false</span>; <span class="c">// a negative number can never be a palindrome (due to the minus sign)</span>
+        }
+        <span class="k">int</span> originalNumber = inputNumber;
+        <span class="k">long</span> reversedNumber = <span class="n">0</span>;
+ 
+        <span class="k">while</span> (inputNumber &gt; <span class="n">0</span>) {
+            <span class="k">int</span> lastDigit = inputNumber % <span class="n">10</span>;
+            reversedNumber = reversedNumber * <span class="n">10</span> + lastDigit;
+            inputNumber /= <span class="n">10</span>;
+        }
+        <span class="k">return</span> reversedNumber == originalNumber;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(isStringPalindrome(<span class="s">&quot;racecar&quot;</span>)); <span class="c">// true</span>
+        <span class="t">System</span>.out.println(isStringPalindrome(<span class="s">&quot;hello&quot;</span>));   <span class="c">// false</span>
+        <span class="t">System</span>.out.println(isNumberPalindrome(<span class="n">12321</span>));     <span class="c">// true</span>
+        <span class="t">System</span>.out.println(isNumberPalindrome(<span class="n">12345</span>));     <span class="c">// false</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time for the String version, where n is the string&#x27;s length. O(d) time for the number version, where d is the number of digits. Both use O(1) extra space (aside from the reversed number/string itself).</strong></p>
+<p class="question"><strong>Q5. Choose a number, reverse its digits and add it to the original. If the sum is not a palindrome, repeat the procedure until it becomes one.</strong></p>
+<p class="problem">Problem statement: Starting from a given number, repeatedly reverse its digits and add the reversed value to the current value. Stop once the resulting sum is itself a palindrome, and report that final palindrome. Example given in the original question: starting from 195, the process runs 195 + 591 = 786; 786 + 687 = 1473; 1473 + 3741 = 5214; 5214 + 4125 = 9339, which is a palindrome, so 9339 is the final answer.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">PalindromeSumFinder</span> {
+ 
+    <span class="c">// Reverses the digits of a positive number and returns the reversed value</span>
+    <span class="k">private</span> <span class="k">static</span> <span class="k">long</span> reverseDigits(<span class="k">long</span> inputNumber) {
+        <span class="k">long</span> reversedNumber = <span class="n">0</span>;
+        <span class="k">while</span> (inputNumber &gt; <span class="n">0</span>) {
+            <span class="k">long</span> lastDigit = inputNumber % <span class="n">10</span>;
+            reversedNumber = reversedNumber * <span class="n">10</span> + lastDigit;
+            inputNumber /= <span class="n">10</span>;
+        }
+        <span class="k">return</span> reversedNumber;
+    }
+ 
+    <span class="c">// Checks whether a number reads the same forwards and backwards</span>
+    <span class="k">private</span> <span class="k">static</span> <span class="k">boolean</span> isPalindromeNumber(<span class="k">long</span> inputNumber) {
+        <span class="k">return</span> inputNumber == reverseDigits(inputNumber);
+    }
+ 
+    <span class="c">// Repeatedly reverses-and-adds until the result is a palindrome, printing</span>
+    <span class="c">// each intermediate step along the way (matching the example in the problem)</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">long</span> findPalindromeByReverseAndAdd(<span class="k">long</span> startingNumber) {
+        <span class="k">long</span> currentValue = startingNumber;
+ 
+        <span class="k">while</span> (!isPalindromeNumber(currentValue)) {
+            <span class="k">long</span> reversedValue = reverseDigits(currentValue);
+            <span class="k">long</span> newSum = currentValue + reversedValue;
+            <span class="t">System</span>.out.println(currentValue + <span class="s">&quot; + &quot;</span> + reversedValue + <span class="s">&quot; = &quot;</span> + newSum);
+            currentValue = newSum;
+        }
+        <span class="k">return</span> currentValue;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">long</span> finalPalindrome = findPalindromeByReverseAndAdd(<span class="n">195</span>);
+        <span class="t">System</span>.out.println(<span class="s">&quot;Final palindrome: &quot;</span> + finalPalindrome);
+        <span class="c">// Matches the example: 195 -&gt; 786 -&gt; 1473 -&gt; 5214 -&gt; 9339 (palindrome)</span>
+    }
+}</code></pre>
+<div class="callout"><strong>Note: </strong>Some starting numbers (most famously 196) are conjectured to never produce a palindrome no matter how many times the process is repeated (this is known as the &quot;196-algorithm&quot; or Lychrel number problem, and remains an unproven, open mathematical question). A production-quality version of this function should accept a maximum iteration count and stop gracefully rather than looping forever if a genuinely Lychrel-like number is supplied.</div>
+<h1 id="fizzbuzz-4">FizzBuzz</h1>
+<p class="question"><strong>Q6. Write the classic FizzBuzz program. (Asked multiple times, including a HackerRank variant.)</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/fizz-buzz/" target="_blank" rel="noopener">Fizz Buzz &#8599;</a></span></p>
+<p class="problem">Problem statement: Print the numbers from 1 to a given upper limit. For every multiple of 3, print &quot;Fizz&quot; instead of the number. For every multiple of 5, print &quot;Buzz&quot; instead of the number. For every multiple of both 3 and 5, print &quot;FizzBuzz&quot; instead of the number.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">FizzBuzzPrinter</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> printFizzBuzzSequence(<span class="k">int</span> upperLimit) {
+        <span class="k">for</span> (<span class="k">int</span> currentNumber = <span class="n">1</span>; currentNumber &lt;= upperLimit; currentNumber++) {
+            <span class="k">boolean</span> isDivisibleByThree = (currentNumber % <span class="n">3</span> == <span class="n">0</span>);
+            <span class="k">boolean</span> isDivisibleByFive = (currentNumber % <span class="n">5</span> == <span class="n">0</span>);
+ 
+            <span class="k">if</span> (isDivisibleByThree &amp;&amp; isDivisibleByFive) {
+                <span class="t">System</span>.out.println(<span class="s">&quot;FizzBuzz&quot;</span>); <span class="c">// divisible by BOTH 3 and 5</span>
+            } <span class="k">else</span> <span class="k">if</span> (isDivisibleByThree) {
+                <span class="t">System</span>.out.println(<span class="s">&quot;Fizz&quot;</span>);     <span class="c">// divisible by 3 only</span>
+            } <span class="k">else</span> <span class="k">if</span> (isDivisibleByFive) {
+                <span class="t">System</span>.out.println(<span class="s">&quot;Buzz&quot;</span>);     <span class="c">// divisible by 5 only</span>
+            } <span class="k">else</span> {
+                <span class="t">System</span>.out.println(currentNumber); <span class="c">// not divisible by either</span>
+            }
+        }
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        printFizzBuzzSequence(<span class="n">15</span>);
+        <span class="c">// Expected output: 1 2 Fizz 4 Buzz Fizz 7 8 Fizz Buzz 11 Fizz 13 14 FizzBuzz</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time, O(1) extra space.</strong></p>
+<h1 id="divisibility-powers-5">Divisibility &amp; Powers</h1>
+<p class="question"><strong>Q7. Check divisibility by a number.</strong></p>
+<p class="problem">Problem statement: Given two integers, determine whether the first is evenly divisible by the second (i.e. the division leaves no remainder).</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">DivisibilityChecker</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">boolean</span> isEvenlyDivisible(<span class="k">int</span> dividendValue, <span class="k">int</span> divisorValue) {
+        <span class="k">if</span> (divisorValue == <span class="n">0</span>) {
+            <span class="k">throw</span> <span class="k">new</span> <span class="t">ArithmeticException</span>(<span class="s">&quot;Cannot check divisibility by zero&quot;</span>);
+        }
+        <span class="k">return</span> dividendValue % divisorValue == <span class="n">0</span>;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(isEvenlyDivisible(<span class="n">20</span>, <span class="n">4</span>)); <span class="c">// true  (20 / 4 = 5, no remainder)</span>
+        <span class="t">System</span>.out.println(isEvenlyDivisible(<span class="n">20</span>, <span class="n">3</span>)); <span class="c">// false (20 / 3 leaves a remainder)</span>
+    }
+}</code></pre>
+<p class="question"><strong>Q8. Check whether a number is a power of ten (isPowerOfTen), and find all powers of ten up to a limit.</strong></p>
+<p class="problem">Problem statement: Given an integer, determine whether it is a power of ten (1, 10, 100, 1000, ...). Additionally, list every power of ten up to a given upper limit.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">PowerOfTenChecker</span> {
+ 
+    <span class="c">// Repeatedly divides by 10 until the value can no longer be evenly</span>
+    <span class="c">// divided; if the final remaining value is exactly 1, the original</span>
+    <span class="c">// number was a power of ten</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">boolean</span> isPowerOfTen(<span class="k">int</span> candidateNumber) {
+        <span class="k">if</span> (candidateNumber &lt;= <span class="n">0</span>) {
+            <span class="k">return</span> <span class="k">false</span>;
+        }
+        <span class="k">while</span> (candidateNumber % <span class="n">10</span> == <span class="n">0</span>) {
+            candidateNumber /= <span class="n">10</span>;
+        }
+        <span class="k">return</span> candidateNumber == <span class="n">1</span>;
+    }
+ 
+    <span class="c">// Prints every power of ten (1, 10, 100, ...) that is less than or</span>
+    <span class="c">// equal to the given upper limit</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> printAllPowersOfTenUpTo(<span class="k">long</span> upperLimit) {
+        <span class="k">long</span> currentPower = <span class="n">1</span>;
+        <span class="k">while</span> (currentPower &lt;= upperLimit) {
+            <span class="t">System</span>.out.println(currentPower);
+            currentPower *= <span class="n">10</span>;
+        }
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(isPowerOfTen(<span class="n">1000</span>)); <span class="c">// true</span>
+        <span class="t">System</span>.out.println(isPowerOfTen(<span class="n">150</span>));  <span class="c">// false</span>
+ 
+        printAllPowersOfTenUpTo(<span class="n">100000</span>);
+        <span class="c">// Expected output: 1, 10, 100, 1000, 10000, 100000</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(log10(n)) time for isPowerOfTen, since each iteration divides the number by 10.</strong></p>
+<p class="question"><strong>Q9. Convert a base-10 number to base-7.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/base-7/" target="_blank" rel="noopener">Base 7 &#8599;</a></span></p>
+<p class="problem">Problem statement: Given a number expressed in base 10 (ordinary decimal), convert it to its equivalent representation in base 7. Example: convertBaseTenToBaseSeven(50) should return &quot;101&quot;, since 50 in decimal equals 1*(7^2) + 0*(7^1) + 1*(7^0) = 49 + 0 + 1 = 50.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">BaseConverter</span> {
+ 
+    <span class="c">// Converts a non-negative base-10 integer into its base-7 String representation,</span>
+    <span class="c">// using the standard &quot;repeated division by the target base, collect remainders&quot; technique</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="t">String</span> convertBaseTenToBaseSeven(<span class="k">int</span> decimalNumber) {
+        <span class="k">if</span> (decimalNumber == <span class="n">0</span>) {
+            <span class="k">return</span> <span class="s">&quot;0&quot;</span>;
+        }
+ 
+        <span class="k">boolean</span> isNegativeNumber = decimalNumber &lt; <span class="n">0</span>;
+        <span class="k">long</span> remainingValue = <span class="t">Math</span>.abs((<span class="k">long</span>) decimalNumber);
+ 
+        <span class="t">StringBuilder</span> baseSevenBuilder = <span class="k">new</span> <span class="t">StringBuilder</span>();
+        <span class="k">while</span> (remainingValue &gt; <span class="n">0</span>) {
+            <span class="k">int</span> nextDigit = (<span class="k">int</span>) (remainingValue % <span class="n">7</span>);
+            baseSevenBuilder.insert(<span class="n">0</span>, nextDigit); <span class="c">// prepend -- builds the digits in correct order</span>
+            remainingValue /= <span class="n">7</span>;
+        }
+ 
+        <span class="k">if</span> (isNegativeNumber) {
+            baseSevenBuilder.insert(<span class="n">0</span>, <span class="s">&#x27;-&#x27;</span>);
+        }
+        <span class="k">return</span> baseSevenBuilder.toString();
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(convertBaseTenToBaseSeven(<span class="n">50</span>));  <span class="c">// &quot;101&quot;</span>
+        <span class="t">System</span>.out.println(convertBaseTenToBaseSeven(<span class="n">100</span>)); <span class="c">// &quot;202&quot;</span>
+ 
+        <span class="c">// Built-in equivalent, for comparison:</span>
+        <span class="t">System</span>.out.println(<span class="t">Integer</span>.toString(<span class="n">50</span>, <span class="n">7</span>)); <span class="c">// &quot;101&quot;</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(log7(n)) time, since the number of base-7 digits is proportional to the logarithm (base 7) of the input.</strong></p>
+<h1 id="pattern-shape-printing-6">Pattern &amp; Shape Printing</h1>
+<p class="question"><strong>Q10. Print a number pyramid given the number of levels. Example: given 3 levels, print &quot;1&quot;, then &quot;2 2&quot;, then &quot;3 3 3&quot;.</strong></p>
+<p class="problem">Problem statement: Given an integer numberOfLevels, print numberOfLevels lines, where line rowNumber (starting from 1) contains the digit rowNumber repeated rowNumber times, separated by spaces.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">NumberPyramidPrinter</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> printNumberPyramid(<span class="k">int</span> numberOfLevels) {
+        <span class="k">for</span> (<span class="k">int</span> rowNumber = <span class="n">1</span>; rowNumber &lt;= numberOfLevels; rowNumber++) {
+            <span class="t">StringBuilder</span> currentRowBuilder = <span class="k">new</span> <span class="t">StringBuilder</span>();
+            <span class="k">for</span> (<span class="k">int</span> columnCount = <span class="n">1</span>; columnCount &lt;= rowNumber; columnCount++) {
+                currentRowBuilder.append(rowNumber);
+                <span class="k">if</span> (columnCount &lt; rowNumber) {
+                    currentRowBuilder.append(<span class="s">&quot; &quot;</span>);
+                }
+            }
+            <span class="t">System</span>.out.println(currentRowBuilder);
+        }
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        printNumberPyramid(<span class="n">3</span>);
+        <span class="c">// Expected output:</span>
+        <span class="c">// 1</span>
+        <span class="c">// 2 2</span>
+        <span class="c">// 3 3 3</span>
+    }
+}</code></pre>
+<p class="question"><strong>Q11. Print a pattern where each row contains only as many stars as the row number, and the stars deplete.</strong></p>
+<p class="problem">Problem statement: Print a pattern with numberOfRows rows. First, each row from 1 to numberOfRows contains that many stars (an increasing pyramid). Then, in a second phase, the star count decreases back down, so the overall pattern grows then shrinks (a diamond-like shape). This answer demonstrates both the increasing and the &quot;depleting&quot; (decreasing) halves.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">StarPatternPrinter</span> {
+ 
+    <span class="c">// Prints an increasing star pattern: row 1 has 1 star, row 2 has 2 stars, etc.</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> printIncreasingStarPattern(<span class="k">int</span> numberOfRows) {
+        <span class="k">for</span> (<span class="k">int</span> rowNumber = <span class="n">1</span>; rowNumber &lt;= numberOfRows; rowNumber++) {
+            <span class="t">StringBuilder</span> starRowBuilder = <span class="k">new</span> <span class="t">StringBuilder</span>();
+            <span class="k">for</span> (<span class="k">int</span> starCount = <span class="n">0</span>; starCount &lt; rowNumber; starCount++) {
+                starRowBuilder.append(<span class="s">&quot;*&quot;</span>);
+            }
+            <span class="t">System</span>.out.println(starRowBuilder);
+        }
+    }
+ 
+    <span class="c">// Prints a pattern that increases up to numberOfRows stars, then</span>
+    <span class="c">// &quot;depletes&quot; back down to a single star -- forming a diamond shape</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> printDepletingStarPattern(<span class="k">int</span> numberOfRows) {
+        <span class="c">// increasing half: 1 star, 2 stars, ..., numberOfRows stars</span>
+        printIncreasingStarPattern(numberOfRows);
+ 
+        <span class="c">// decreasing half: numberOfRows - 1 stars, ..., down to 1 star</span>
+        <span class="k">for</span> (<span class="k">int</span> rowNumber = numberOfRows - <span class="n">1</span>; rowNumber &gt;= <span class="n">1</span>; rowNumber--) {
+            <span class="t">StringBuilder</span> starRowBuilder = <span class="k">new</span> <span class="t">StringBuilder</span>();
+            <span class="k">for</span> (<span class="k">int</span> starCount = <span class="n">0</span>; starCount &lt; rowNumber; starCount++) {
+                starRowBuilder.append(<span class="s">&quot;*&quot;</span>);
+            }
+            <span class="t">System</span>.out.println(starRowBuilder);
+        }
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        printDepletingStarPattern(<span class="n">4</span>);
+        <span class="c">// Expected output:</span>
+        <span class="c">// *</span>
+        <span class="c">// **</span>
+        <span class="c">// ***</span>
+        <span class="c">// ****</span>
+        <span class="c">// ***</span>
+        <span class="c">// **</span>
+        <span class="c">// *</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(numberOfRows^2) time for both patterns, since the total number of characters printed grows quadratically with the number of rows.</strong></p>
+<p class="question"><strong>Q12. Program a star shape.</strong></p>
+<p class="problem">Problem statement: Print a simple rectangular block of stars, sideLength rows by sideLength columns — a general &quot;print a shape made of stars&quot; exercise, commonly used as a warm-up before the more advanced pyramid/triangle patterns above.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">SquareStarPrinter</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> printSquareOfStars(<span class="k">int</span> sideLength) {
+        <span class="k">for</span> (<span class="k">int</span> rowIndex = <span class="n">0</span>; rowIndex &lt; sideLength; rowIndex++) {
+            <span class="t">StringBuilder</span> starRowBuilder = <span class="k">new</span> <span class="t">StringBuilder</span>();
+            <span class="k">for</span> (<span class="k">int</span> columnIndex = <span class="n">0</span>; columnIndex &lt; sideLength; columnIndex++) {
+                starRowBuilder.append(<span class="s">&quot;*&quot;</span>);
+            }
+            <span class="t">System</span>.out.println(starRowBuilder);
+        }
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        printSquareOfStars(<span class="n">4</span>);
+        <span class="c">// Expected output:</span>
+        <span class="c">// ****</span>
+        <span class="c">// ****</span>
+        <span class="c">// ****</span>
+        <span class="c">// ****</span>
+    }
+}</code></pre>
+<h1 id="miscellaneous-math-logic-warm-ups-7">Miscellaneous Math &amp; Logic Warm-ups</h1>
+<p class="question"><strong>Q13. Simplify a fraction given in &quot;a/b&quot; form.</strong></p>
+<p class="problem">Problem statement: Given a fraction expressed as a String in the form &quot;numerator/denominator&quot; (e.g. &quot;8/12&quot;), reduce it to its simplest equivalent form (e.g. &quot;2/3&quot;).</p>
+<p>Approach: divide both the numerator and denominator by their Greatest Common Divisor (see the GCD section above) — dividing both parts of a fraction by their GCD always produces the simplest possible equivalent fraction.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">FractionSimplifier</span> {
+ 
+    <span class="c">// Reuses the Euclidean-algorithm GCD logic from GreatestCommonDivisorFinder</span>
+    <span class="k">private</span> <span class="k">static</span> <span class="k">int</span> findGreatestCommonDivisor(<span class="k">int</span> firstNumber, <span class="k">int</span> secondNumber) {
+        <span class="k">while</span> (secondNumber != <span class="n">0</span>) {
+            <span class="k">int</span> remainderValue = firstNumber % secondNumber;
+            firstNumber = secondNumber;
+            secondNumber = remainderValue;
+        }
+        <span class="k">return</span> firstNumber;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="t">String</span> simplifyFraction(<span class="t">String</span> fractionText) {
+        <span class="t">String</span>[] fractionParts = fractionText.split(<span class="s">&quot;/&quot;</span>);
+        <span class="k">int</span> numeratorValue = <span class="t">Integer</span>.parseInt(fractionParts[<span class="n">0</span>]);
+        <span class="k">int</span> denominatorValue = <span class="t">Integer</span>.parseInt(fractionParts[<span class="n">1</span>]);
+ 
+        <span class="k">int</span> greatestCommonDivisor = findGreatestCommonDivisor(
+            <span class="t">Math</span>.abs(numeratorValue), <span class="t">Math</span>.abs(denominatorValue));
+ 
+        <span class="k">int</span> simplifiedNumerator = numeratorValue / greatestCommonDivisor;
+        <span class="k">int</span> simplifiedDenominator = denominatorValue / greatestCommonDivisor;
+ 
+        <span class="k">return</span> simplifiedNumerator + <span class="s">&quot;/&quot;</span> + simplifiedDenominator;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(simplifyFraction(<span class="s">&quot;8/12&quot;</span>));  <span class="c">// &quot;2/3&quot;</span>
+        <span class="t">System</span>.out.println(simplifyFraction(<span class="s">&quot;100/25&quot;</span>)); <span class="c">// &quot;4/1&quot;</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(log(min(numerator, denominator))) time, dominated by the GCD computation.</strong></p>
+<p class="question"><strong>Q14. Write a simple greedy algorithm.</strong></p>
+<p class="problem">Problem statement: This is a general prompt rather than one specific problem. A greedy algorithm makes the locally optimal choice at every step, hoping that these local choices lead to a globally optimal solution overall. A classic, concrete example: given a target amount of change to make and an available set of coin denominations, use the fewest coins possible by always picking the largest denomination that doesn&#x27;t exceed the remaining amount.</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">ArrayList</span>;
+<span class="k">import</span> java.util.<span class="t">List</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">GreedyCoinMaker</span> {
+ 
+    <span class="c">// Greedy coin-change: repeatedly picks the LARGEST available coin</span>
+    <span class="c">// denomination that still fits within the remaining amount to make</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="t">List</span>&lt;<span class="t">Integer</span>&gt; makeChangeGreedily(<span class="k">int</span> targetAmount, <span class="k">int</span>[] availableDenominations) {
+        <span class="t">List</span>&lt;<span class="t">Integer</span>&gt; coinsUsed = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
+        <span class="k">int</span> remainingAmount = targetAmount;
+ 
+        <span class="c">// process denominations from largest to smallest</span>
+        <span class="k">for</span> (<span class="k">int</span> currentIndex = availableDenominations.length - <span class="n">1</span>; currentIndex &gt;= <span class="n">0</span>; currentIndex--) {
+            <span class="k">int</span> currentDenomination = availableDenominations[currentIndex];
+ 
+            <span class="k">while</span> (remainingAmount &gt;= currentDenomination) {
+                coinsUsed.add(currentDenomination);
+                remainingAmount -= currentDenomination;
+            }
+        }
+        <span class="k">return</span> coinsUsed;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[] sortedDenominations = {<span class="n">1</span>, <span class="n">5</span>, <span class="n">10</span>, <span class="n">25</span>}; <span class="c">// must be sorted ascending</span>
+        <span class="t">List</span>&lt;<span class="t">Integer</span>&gt; coinsUsed = makeChangeGreedily(<span class="n">41</span>, sortedDenominations);
+        <span class="t">System</span>.out.println(coinsUsed); <span class="c">// [25, 10, 5, 1] -- four coins total</span>
+    }
+}</code></pre>
+<div class="callout"><strong>Note: </strong>A greedy approach does NOT always produce the globally optimal answer for every possible set of coin denominations (for example, with denominations {1, 3, 4} and a target of 6, the greedy approach picks 4+1+1 = three coins, but the true optimal answer is 3+3 = two coins). For denominations where greedy is not guaranteed optimal, Dynamic Programming (see the dedicated Coin Change problem in a later document in this series) is required to guarantee the truly minimal number of coins.</div><div class="pager"><span></span><span><a href="02-strings.html">Strings &rarr;</a></span></div></main></div></body></html>

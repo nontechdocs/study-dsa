@@ -1,0 +1,536 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Linked Lists</title><link rel="stylesheet" href="../assets/style.css"></head><body>
+<header class="top"><a href="../index.html">&#8962; Index</a><span class="sp"></span><strong>Linked Lists</strong></header>
+<div class="layout"><nav class="toc"><a href="#traversal-basic-operations-0">Traversal &amp; Basic Operations</a><a href="#finding-specific-nodes-1">Finding Specific Nodes</a><a href="#reversal-deduplication-2">Reversal &amp; Deduplication</a><a href="#cycle-detection-structural-problems-3">Cycle Detection &amp; Structural Problems</a><a href="#implementing-a-deque-with-a-doubly-linked-list-4">Implementing a Deque with a Doubly Linked List</a></nav><main><h1 class="title">Java Programming Interview Questions — Document 4</h1><p class="sub">Linked Lists</p><p>This document covers all the linked-list coding questions from the supplied question list: traversal, reversal, finding the middle and nth-from-the-end nodes, cycle detection, deleting nodes, removing duplicates, flattening a multilevel list, finding a common junction between multiple lists, and implementing a Deque with a doubly linked list.</p>
+<p>This is Document 4 of a multi-document set covering all 158 questions from the original spreadsheet. A shared LinkedListNode class definition is used throughout this document to avoid repeating it in every example.</p>
+<p><strong>Shared node definition used throughout this document:</strong></p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">LinkedListNode</span> {
+    <span class="k">int</span> nodeValue;
+    <span class="t">LinkedListNode</span> nextNode;
+ 
+    <span class="t">LinkedListNode</span>(<span class="k">int</span> nodeValue) {
+        <span class="k">this</span>.nodeValue = nodeValue;
+    }
+}</code></pre>
+<h1 id="traversal-basic-operations-0">Traversal &amp; Basic Operations</h1>
+<p class="question"><strong>Q1. Write a linked list traversal.</strong></p>
+<p class="problem">Problem statement: Given the head of a singly linked list, visit and print every node&#x27;s value, from the head through to the end of the list.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">LinkedListTraverser</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> traverseAndPrintList(<span class="t">LinkedListNode</span> headNode) {
+        <span class="t">LinkedListNode</span> currentNode = headNode;
+ 
+        <span class="k">while</span> (currentNode != <span class="k">null</span>) {
+            <span class="t">System</span>.out.print(currentNode.nodeValue);
+            <span class="k">if</span> (currentNode.nextNode != <span class="k">null</span>) {
+                <span class="t">System</span>.out.print(<span class="s">&quot; -&gt; &quot;</span>);
+            }
+            currentNode = currentNode.nextNode; <span class="c">// advance to the next node</span>
+        }
+        <span class="t">System</span>.out.println();
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">LinkedListNode</span> headNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">1</span>);
+        headNode.nextNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">2</span>);
+        headNode.nextNode.nextNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">3</span>);
+        headNode.nextNode.nextNode.nextNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">4</span>);
+ 
+        traverseAndPrintList(headNode); <span class="c">// 1 -&gt; 2 -&gt; 3 -&gt; 4</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time, O(1) extra space.</strong></p>
+<p class="question"><strong>Q2. Code a linked list that utilizes different functions (a general-purpose linked list class).</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/design-linked-list/" target="_blank" rel="noopener">Related: Design Linked List &#8599;</a></span></p>
+<p class="problem">Problem statement: Build a reusable, self-contained singly linked list CLASS supporting common operations: adding to the front, adding to the back, removing a value, checking whether a value is present, and getting the list&#x27;s current size -- rather than working with loose LinkedListNode objects directly.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">CustomLinkedList</span> {
+ 
+    <span class="k">private</span> <span class="t">LinkedListNode</span> headNode;
+    <span class="k">private</span> <span class="k">int</span> listSize;
+ 
+    <span class="c">// Adds a new value to the FRONT of the list</span>
+    <span class="k">public</span> <span class="k">void</span> addToFront(<span class="k">int</span> newValue) {
+        <span class="t">LinkedListNode</span> newNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(newValue);
+        newNode.nextNode = headNode;
+        headNode = newNode;
+        listSize++;
+    }
+ 
+    <span class="c">// Adds a new value to the BACK of the list</span>
+    <span class="k">public</span> <span class="k">void</span> addToBack(<span class="k">int</span> newValue) {
+        <span class="t">LinkedListNode</span> newNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(newValue);
+        <span class="k">if</span> (headNode == <span class="k">null</span>) {
+            headNode = newNode;
+        } <span class="k">else</span> {
+            <span class="t">LinkedListNode</span> currentNode = headNode;
+            <span class="k">while</span> (currentNode.nextNode != <span class="k">null</span>) {
+                currentNode = currentNode.nextNode;
+            }
+            currentNode.nextNode = newNode;
+        }
+        listSize++;
+    }
+ 
+    <span class="c">// Removes the FIRST node matching targetValue, if present</span>
+    <span class="k">public</span> <span class="k">boolean</span> removeValue(<span class="k">int</span> targetValue) {
+        <span class="k">if</span> (headNode == <span class="k">null</span>) {
+            <span class="k">return</span> <span class="k">false</span>;
+        }
+        <span class="k">if</span> (headNode.nodeValue == targetValue) {
+            headNode = headNode.nextNode;
+            listSize--;
+            <span class="k">return</span> <span class="k">true</span>;
+        }
+ 
+        <span class="t">LinkedListNode</span> previousNode = headNode;
+        <span class="t">LinkedListNode</span> currentNode = headNode.nextNode;
+        <span class="k">while</span> (currentNode != <span class="k">null</span>) {
+            <span class="k">if</span> (currentNode.nodeValue == targetValue) {
+                previousNode.nextNode = currentNode.nextNode; <span class="c">// unlink currentNode</span>
+                listSize--;
+                <span class="k">return</span> <span class="k">true</span>;
+            }
+            previousNode = currentNode;
+            currentNode = currentNode.nextNode;
+        }
+        <span class="k">return</span> <span class="k">false</span>; <span class="c">// value not found</span>
+    }
+ 
+    <span class="k">public</span> <span class="k">boolean</span> containsValue(<span class="k">int</span> targetValue) {
+        <span class="t">LinkedListNode</span> currentNode = headNode;
+        <span class="k">while</span> (currentNode != <span class="k">null</span>) {
+            <span class="k">if</span> (currentNode.nodeValue == targetValue) {
+                <span class="k">return</span> <span class="k">true</span>;
+            }
+            currentNode = currentNode.nextNode;
+        }
+        <span class="k">return</span> <span class="k">false</span>;
+    }
+ 
+    <span class="k">public</span> <span class="k">int</span> getSize() {
+        <span class="k">return</span> listSize;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">CustomLinkedList</span> myList = <span class="k">new</span> <span class="t">CustomLinkedList</span>();
+        myList.addToBack(<span class="n">10</span>);
+        myList.addToBack(<span class="n">20</span>);
+        myList.addToFront(<span class="n">5</span>);
+        <span class="t">System</span>.out.println(myList.containsValue(<span class="n">20</span>)); <span class="c">// true</span>
+        myList.removeValue(<span class="n">20</span>);
+        <span class="t">System</span>.out.println(myList.containsValue(<span class="n">20</span>)); <span class="c">// false</span>
+        <span class="t">System</span>.out.println(myList.getSize());          <span class="c">// 2</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: addToFront is O(1). addToBack, removeValue, and containsValue are each O(n), since they may need to walk the entire list.</strong></p>
+<h1 id="finding-specific-nodes-1">Finding Specific Nodes</h1>
+<p class="question"><strong>Q3. Find the middle node of a singly linked list.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/middle-of-the-linked-list/" target="_blank" rel="noopener">Middle Of The Linked List &#8599;</a></span></p>
+<p class="problem">Problem statement: Given the head of a singly linked list, return its MIDDLE node. If there are two middle nodes (an even-length list), return the SECOND of the two. Example: for the list 1 -&gt; 2 -&gt; 3 -&gt; 4 -&gt; 5, the middle node is 3.</p>
+<p>Approach: the fast-and-slow pointer technique. Both pointers start at the head; slowPointer advances one node at a time, while fastPointer advances two nodes at a time. When fastPointer reaches the end, slowPointer -- having moved at half the speed -- is exactly at the middle.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">MiddleNodeFinder</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="t">LinkedListNode</span> findMiddleNode(<span class="t">LinkedListNode</span> headNode) {
+        <span class="t">LinkedListNode</span> slowPointer = headNode;
+        <span class="t">LinkedListNode</span> fastPointer = headNode;
+ 
+        <span class="k">while</span> (fastPointer != <span class="k">null</span> &amp;&amp; fastPointer.nextNode != <span class="k">null</span>) {
+            slowPointer = slowPointer.nextNode;             <span class="c">// moves 1 step</span>
+            fastPointer = fastPointer.nextNode.nextNode;     <span class="c">// moves 2 steps</span>
+        }
+        <span class="k">return</span> slowPointer; <span class="c">// lands exactly on the middle once fastPointer reaches the end</span>
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">LinkedListNode</span> headNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">1</span>);
+        headNode.nextNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">2</span>);
+        headNode.nextNode.nextNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">3</span>);
+        headNode.nextNode.nextNode.nextNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">4</span>);
+        headNode.nextNode.nextNode.nextNode.nextNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">5</span>);
+ 
+        <span class="t">LinkedListNode</span> middleNode = findMiddleNode(headNode);
+        <span class="t">System</span>.out.println(middleNode.nodeValue); <span class="c">// 3</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time (a single pass, since fastPointer visits every node at most once), O(1) extra space -- avoiding the need for a first pass just to count the list&#x27;s total length.</strong></p>
+<p class="question"><strong>Q4. Find the nth node from the end of a linked list. (Asked twice: &quot;find nth node from the end&quot; and &quot;keep track of nth to last node.&quot;)</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/remove-nth-node-from-end-of-list/" target="_blank" rel="noopener">Remove Nth Node From End Of List &#8599;</a></span></p>
+<p class="problem">Problem statement: Given the head of a singly linked list and an integer positionFromEnd, return the node that is positionFromEnd nodes from the END of the list (where positionFromEnd = 1 means the very last node). Example: for the list 1 -&gt; 2 -&gt; 3 -&gt; 4 -&gt; 5, findNthFromEnd(headNode, 2) should return the node with value 4.</p>
+<p>Approach: the two-pointer &quot;runner&quot; technique. Advance a leadPointer positionFromEnd nodes ahead of a trailPointer first; then advance both pointers together, one step at a time, until leadPointer reaches the end. At that point, trailPointer is exactly positionFromEnd nodes from the end -- achieved in a SINGLE pass, without needing to know the list&#x27;s length in advance.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">NthFromEndFinder</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="t">LinkedListNode</span> findNthFromEnd(<span class="t">LinkedListNode</span> headNode, <span class="k">int</span> positionFromEnd) {
+        <span class="t">LinkedListNode</span> leadPointer = headNode;
+        <span class="t">LinkedListNode</span> trailPointer = headNode;
+ 
+        <span class="c">// advance leadPointer &quot;positionFromEnd&quot; nodes ahead of trailPointer</span>
+        <span class="k">for</span> (<span class="k">int</span> stepCount = <span class="n">0</span>; stepCount &lt; positionFromEnd; stepCount++) {
+            <span class="k">if</span> (leadPointer == <span class="k">null</span>) {
+                <span class="k">throw</span> <span class="k">new</span> <span class="t">IllegalArgumentException</span>(<span class="s">&quot;positionFromEnd exceeds the list&#x27;s length&quot;</span>);
+            }
+            leadPointer = leadPointer.nextNode;
+        }
+ 
+        <span class="c">// advance both pointers together until leadPointer reaches the end;</span>
+        <span class="c">// trailPointer is then exactly &quot;positionFromEnd&quot; nodes from the end</span>
+        <span class="k">while</span> (leadPointer != <span class="k">null</span>) {
+            leadPointer = leadPointer.nextNode;
+            trailPointer = trailPointer.nextNode;
+        }
+        <span class="k">return</span> trailPointer;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">LinkedListNode</span> headNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">1</span>);
+        headNode.nextNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">2</span>);
+        headNode.nextNode.nextNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">3</span>);
+        headNode.nextNode.nextNode.nextNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">4</span>);
+        headNode.nextNode.nextNode.nextNode.nextNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">5</span>);
+ 
+        <span class="t">LinkedListNode</span> resultNode = findNthFromEnd(headNode, <span class="n">2</span>);
+        <span class="t">System</span>.out.println(resultNode.nodeValue); <span class="c">// 4</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time (a single pass), O(1) extra space.</strong></p>
+<h1 id="reversal-deduplication-2">Reversal &amp; Deduplication</h1>
+<p class="question"><strong>Q5. Reverse a linked list. Given the list&#x27;s head, return the new head of the reversed list.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/reverse-linked-list/" target="_blank" rel="noopener">Reverse Linked List &#8599;</a></span></p>
+<p class="problem">Problem statement: Given the head of a singly linked list, reverse it in place and return the new head (which was previously the tail). Example: for the list 1 -&gt; 2 -&gt; 3 -&gt; 4, the reversed list is 4 -&gt; 3 -&gt; 2 -&gt; 1.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">LinkedListReverser</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="t">LinkedListNode</span> reverseList(<span class="t">LinkedListNode</span> headNode) {
+        <span class="t">LinkedListNode</span> previousNode = <span class="k">null</span>;
+        <span class="t">LinkedListNode</span> currentNode = headNode;
+ 
+        <span class="k">while</span> (currentNode != <span class="k">null</span>) {
+            <span class="t">LinkedListNode</span> nextNode = currentNode.nextNode; <span class="c">// save before overwriting it</span>
+            currentNode.nextNode = previousNode;              <span class="c">// reverse this node&#x27;s pointer</span>
+            previousNode = currentNode;                        <span class="c">// advance previousNode</span>
+            currentNode = nextNode;                             <span class="c">// advance currentNode</span>
+        }
+        <span class="k">return</span> previousNode; <span class="c">// previousNode ends up as the new head</span>
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">LinkedListNode</span> headNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">1</span>);
+        headNode.nextNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">2</span>);
+        headNode.nextNode.nextNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">3</span>);
+        headNode.nextNode.nextNode.nextNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">4</span>);
+ 
+        <span class="t">LinkedListNode</span> reversedHead = reverseList(headNode);
+        printList(reversedHead); <span class="c">// 4 -&gt; 3 -&gt; 2 -&gt; 1</span>
+    }
+ 
+    <span class="k">private</span> <span class="k">static</span> <span class="k">void</span> printList(<span class="t">LinkedListNode</span> headNode) {
+        <span class="t">LinkedListNode</span> currentNode = headNode;
+        <span class="k">while</span> (currentNode != <span class="k">null</span>) {
+            <span class="t">System</span>.out.print(currentNode.nodeValue + (currentNode.nextNode != <span class="k">null</span> ? <span class="s">&quot; -&gt; &quot;</span> : <span class="s">&quot;&quot;</span>));
+            currentNode = currentNode.nextNode;
+        }
+        <span class="t">System</span>.out.println();
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time (each node is visited exactly once), O(1) extra space.</strong></p>
+<p class="question"><strong>Q6. Replace (remove) duplicates in a list.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/remove-duplicates-from-sorted-list/" target="_blank" rel="noopener">Remove Duplicates From Sorted List &#8599;</a></span></p>
+<p class="problem">Problem statement: Given the head of an UNSORTED singly linked list, remove every duplicate value, keeping only the FIRST occurrence of each distinct value. Example: for the list 1 -&gt; 3 -&gt; 2 -&gt; 3 -&gt; 1 -&gt; 5, the result should be 1 -&gt; 3 -&gt; 2 -&gt; 5.</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">HashSet</span>;
+<span class="k">import</span> java.util.<span class="t">Set</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">DuplicateRemover</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> removeDuplicateValues(<span class="t">LinkedListNode</span> headNode) {
+        <span class="k">if</span> (headNode == <span class="k">null</span>) {
+            <span class="k">return</span>;
+        }
+        <span class="t">Set</span>&lt;<span class="t">Integer</span>&gt; valuesSeenSoFar = <span class="k">new</span> <span class="t">HashSet</span>&lt;&gt;();
+        <span class="t">LinkedListNode</span> previousNode = headNode;
+        valuesSeenSoFar.add(headNode.nodeValue);
+ 
+        <span class="t">LinkedListNode</span> currentNode = headNode.nextNode;
+        <span class="k">while</span> (currentNode != <span class="k">null</span>) {
+            <span class="k">if</span> (valuesSeenSoFar.contains(currentNode.nodeValue)) {
+                <span class="c">// duplicate value found -- unlink it by skipping over it</span>
+                previousNode.nextNode = currentNode.nextNode;
+            } <span class="k">else</span> {
+                valuesSeenSoFar.add(currentNode.nodeValue);
+                previousNode = currentNode; <span class="c">// only advance previousNode when we KEEP a node</span>
+            }
+            currentNode = currentNode.nextNode;
+        }
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">LinkedListNode</span> headNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">1</span>);
+        headNode.nextNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">3</span>);
+        headNode.nextNode.nextNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">2</span>);
+        headNode.nextNode.nextNode.nextNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">3</span>);
+        headNode.nextNode.nextNode.nextNode.nextNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">1</span>);
+        headNode.nextNode.nextNode.nextNode.nextNode.nextNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">5</span>);
+ 
+        removeDuplicateValues(headNode);
+        printList(headNode); <span class="c">// 1 -&gt; 3 -&gt; 2 -&gt; 5</span>
+    }
+ 
+    <span class="k">private</span> <span class="k">static</span> <span class="k">void</span> printList(<span class="t">LinkedListNode</span> headNode) {
+        <span class="t">LinkedListNode</span> currentNode = headNode;
+        <span class="k">while</span> (currentNode != <span class="k">null</span>) {
+            <span class="t">System</span>.out.print(currentNode.nodeValue + (currentNode.nextNode != <span class="k">null</span> ? <span class="s">&quot; -&gt; &quot;</span> : <span class="s">&quot;&quot;</span>));
+            currentNode = currentNode.nextNode;
+        }
+        <span class="t">System</span>.out.println();
+    }
+}</code></pre>
+<div class="callout"><strong>Note: </strong>If a HashSet is not allowed (e.g. the interviewer specifically asks for O(1) extra space), an alternative approach uses two nested pointers: for each node, walk the REST of the list ahead of it, removing any later node with the same value. This works without extra memory, but runs in O(n^2) time instead of O(n) -- a classic time/space tradeoff worth explicitly mentioning.</div>
+<p class="complexity"><strong>Complexity: O(n) time and O(n) extra space using a HashSet. O(n^2) time and O(1) extra space using the nested-pointer alternative.</strong></p>
+<p class="question"><strong>Q7. In-memory node deletion from a linked list, given only a reference to the node to delete (not the head).</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/delete-node-in-a-linked-list/" target="_blank" rel="noopener">Delete Node In A Linked List &#8599;</a></span></p>
+<p class="problem">Problem statement: Given a reference to a node WITHIN a singly linked list (but NOT a reference to the list&#x27;s head, and assuming the node to delete is not the last node), delete that node from the list. Since you cannot access the PREVIOUS node (no back-pointer exists in a singly linked list, and you don&#x27;t have the head to walk from), a different trick is required.</p>
+<p>Approach: rather than truly deleting the given node, COPY the value from the NEXT node into it, then delete the NEXT node instead (which is easy, since you DO have direct access to it via nodeToDelete.nextNode). The list ends up with the same effective sequence of values, one node shorter.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">InMemoryNodeDeleter</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> deleteNodeGivenOnlyItself(<span class="t">LinkedListNode</span> nodeToDelete) {
+        <span class="k">if</span> (nodeToDelete == <span class="k">null</span> || nodeToDelete.nextNode == <span class="k">null</span>) {
+            <span class="k">throw</span> <span class="k">new</span> <span class="t">IllegalArgumentException</span>(<span class="s">&quot;Cannot delete the last node using this technique&quot;</span>);
+        }
+ 
+        <span class="t">LinkedListNode</span> followingNode = nodeToDelete.nextNode;
+ 
+        <span class="c">// overwrite THIS node&#x27;s data with the NEXT node&#x27;s data...</span>
+        nodeToDelete.nodeValue = followingNode.nodeValue;
+        <span class="c">// ...then unlink the (now-duplicated) next node entirely</span>
+        nodeToDelete.nextNode = followingNode.nextNode;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">LinkedListNode</span> headNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">1</span>);
+        headNode.nextNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">2</span>);
+        headNode.nextNode.nextNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">3</span>);
+        headNode.nextNode.nextNode.nextNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">4</span>);
+ 
+        <span class="t">LinkedListNode</span> nodeToDelete = headNode.nextNode; <span class="c">// the node holding value 2</span>
+        deleteNodeGivenOnlyItself(nodeToDelete);
+ 
+        printList(headNode); <span class="c">// 1 -&gt; 3 -&gt; 4</span>
+    }
+ 
+    <span class="k">private</span> <span class="k">static</span> <span class="k">void</span> printList(<span class="t">LinkedListNode</span> headNode) {
+        <span class="t">LinkedListNode</span> currentNode = headNode;
+        <span class="k">while</span> (currentNode != <span class="k">null</span>) {
+            <span class="t">System</span>.out.print(currentNode.nodeValue + (currentNode.nextNode != <span class="k">null</span> ? <span class="s">&quot; -&gt; &quot;</span> : <span class="s">&quot;&quot;</span>));
+            currentNode = currentNode.nextNode;
+        }
+        <span class="t">System</span>.out.println();
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(1) time and space -- this technique is specifically valued for being much faster than the O(n) it would otherwise take to walk from the head to find the PREVIOUS node.</strong></p>
+<h1 id="cycle-detection-structural-problems-3">Cycle Detection &amp; Structural Problems</h1>
+<p class="question"><strong>Q8. Find a loop (cycle) in a linked list.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/linked-list-cycle/" target="_blank" rel="noopener">Linked List Cycle &#8599;</a></span></p>
+<p class="problem">Problem statement: Given the head of a linked list, determine whether the list contains a CYCLE (i.e. some node&#x27;s nextNode pointer eventually leads back to a PREVIOUSLY visited node, rather than eventually reaching null).</p>
+<p>Approach: Floyd&#x27;s Cycle Detection (the fast-and-slow pointer technique, also used above to find the middle node). If a cycle exists, the faster pointer will eventually &quot;lap&quot; the slower pointer and they will point to the SAME node at the SAME time.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">LinkedListCycleDetector</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">boolean</span> hasCycle(<span class="t">LinkedListNode</span> headNode) {
+        <span class="t">LinkedListNode</span> slowPointer = headNode;
+        <span class="t">LinkedListNode</span> fastPointer = headNode;
+ 
+        <span class="k">while</span> (fastPointer != <span class="k">null</span> &amp;&amp; fastPointer.nextNode != <span class="k">null</span>) {
+            slowPointer = slowPointer.nextNode;
+            fastPointer = fastPointer.nextNode.nextNode;
+ 
+            <span class="k">if</span> (slowPointer == fastPointer) {
+                <span class="k">return</span> <span class="k">true</span>; <span class="c">// fastPointer has &quot;lapped&quot; slowPointer -- a cycle exists</span>
+            }
+        }
+        <span class="k">return</span> <span class="k">false</span>; <span class="c">// fastPointer reached null -- no cycle</span>
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">LinkedListNode</span> headNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">1</span>);
+        headNode.nextNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">2</span>);
+        headNode.nextNode.nextNode = <span class="k">new</span> <span class="t">LinkedListNode</span>(<span class="n">3</span>);
+        headNode.nextNode.nextNode.nextNode = headNode.nextNode; <span class="c">// creates a cycle back to node 2</span>
+ 
+        <span class="t">System</span>.out.println(hasCycle(headNode)); <span class="c">// true</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time, O(1) extra space -- notably better than an alternative approach using a HashSet to track visited nodes, which would use O(n) extra space.</strong></p>
+<p class="question"><strong>Q9. Given three linked list heads, find their common junction (where the lists merge).</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/intersection-of-two-linked-lists/" target="_blank" rel="noopener">Related: Intersection Of Two Linked Lists &#8599;</a></span></p>
+<p class="problem">Problem statement: Given the heads of THREE singly linked lists that eventually MERGE into a single shared tail (like the letter Y, but with three branches), find the node at which all three lists first come together. This generalizes the classic two-list &quot;intersection&quot; problem.</p>
+<p>Approach: solve the two-list version first (align both lists&#x27; starting points by first walking off the LENGTH DIFFERENCE between them, then advance both pointers together until they point to the SAME node), then apply it pairwise: find the junction of lists 1 and 2, then find the junction of THAT result and list 3.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">CommonJunctionFinder</span> {
+ 
+    <span class="c">// Finds the node where two lists first merge together (classic two-list version)</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="t">LinkedListNode</span> findJunctionOfTwoLists(<span class="t">LinkedListNode</span> firstHead, <span class="t">LinkedListNode</span> secondHead) {
+        <span class="k">int</span> firstLength = calculateListLength(firstHead);
+        <span class="k">int</span> secondLength = calculateListLength(secondHead);
+ 
+        <span class="t">LinkedListNode</span> longerListPointer = firstLength &gt;= secondLength ? firstHead : secondHead;
+        <span class="t">LinkedListNode</span> shorterListPointer = firstLength &gt;= secondLength ? secondHead : firstHead;
+ 
+        <span class="c">// advance the pointer on the LONGER list first, to align both</span>
+        <span class="c">// pointers the same distance from the eventual junction</span>
+        <span class="k">int</span> lengthDifference = <span class="t">Math</span>.abs(firstLength - secondLength);
+        <span class="k">for</span> (<span class="k">int</span> stepCount = <span class="n">0</span>; stepCount &lt; lengthDifference; stepCount++) {
+            longerListPointer = longerListPointer.nextNode;
+        }
+ 
+        <span class="c">// advance both pointers together -- they will meet exactly at the junction</span>
+        <span class="k">while</span> (longerListPointer != shorterListPointer) {
+            longerListPointer = longerListPointer.nextNode;
+            shorterListPointer = shorterListPointer.nextNode;
+        }
+        <span class="k">return</span> longerListPointer; <span class="c">// could also be null, if the lists never actually merge</span>
+    }
+ 
+    <span class="c">// Generalizes to THREE lists by finding the junction pairwise</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="t">LinkedListNode</span> findJunctionOfThreeLists(<span class="t">LinkedListNode</span> firstHead,
+                                                            <span class="t">LinkedListNode</span> secondHead,
+                                                            <span class="t">LinkedListNode</span> thirdHead) {
+        <span class="t">LinkedListNode</span> junctionOfFirstTwo = findJunctionOfTwoLists(firstHead, secondHead);
+        <span class="k">return</span> findJunctionOfTwoLists(junctionOfFirstTwo, thirdHead);
+    }
+ 
+    <span class="k">private</span> <span class="k">static</span> <span class="k">int</span> calculateListLength(<span class="t">LinkedListNode</span> headNode) {
+        <span class="k">int</span> lengthCount = <span class="n">0</span>;
+        <span class="t">LinkedListNode</span> currentNode = headNode;
+        <span class="k">while</span> (currentNode != <span class="k">null</span>) {
+            lengthCount++;
+            currentNode = currentNode.nextNode;
+        }
+        <span class="k">return</span> lengthCount;
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n + m + k) time, where n, m, and k are the lengths of the three lists -- each list is walked a small, constant number of times. O(1) extra space.</strong></p>
+<p class="question"><strong>Q10. Flatten a multilevel linked list (each node may have a child pointer to a separate sub-list).</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/flatten-a-multilevel-doubly-linked-list/" target="_blank" rel="noopener">Flatten A Multilevel Doubly Linked List &#8599;</a></span></p>
+<p class="problem">Problem statement: Given a linked list where, in addition to the usual nextNode pointer, some nodes also have a childNode pointer to the head of a SEPARATE, independent sub-list, &quot;flatten&quot; the entire structure into a single-level linked list. Whenever a node with a child is encountered, its entire child list (which may itself contain further nested children) should be spliced in immediately after that node, before continuing with what was originally its next node.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">MultilevelLinkedListNode</span> {
+    <span class="k">int</span> nodeValue;
+    <span class="t">MultilevelLinkedListNode</span> nextNode;
+    <span class="t">MultilevelLinkedListNode</span> childNode; <span class="c">// may be null, or point to a nested sub-list</span>
+ 
+    <span class="t">MultilevelLinkedListNode</span>(<span class="k">int</span> nodeValue) {
+        <span class="k">this</span>.nodeValue = nodeValue;
+    }
+}
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">MultilevelListFlattener</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="t">MultilevelLinkedListNode</span> flattenMultilevelList(<span class="t">MultilevelLinkedListNode</span> headNode) {
+        <span class="t">MultilevelLinkedListNode</span> currentNode = headNode;
+ 
+        <span class="k">while</span> (currentNode != <span class="k">null</span>) {
+            <span class="k">if</span> (currentNode.childNode != <span class="k">null</span>) {
+                <span class="t">MultilevelLinkedListNode</span> nextSiblingNode = currentNode.nextNode;
+ 
+                <span class="c">// recursively flatten the child list first, in case IT also</span>
+                <span class="c">// has further nested children</span>
+                <span class="t">MultilevelLinkedListNode</span> flattenedChildHead = flattenMultilevelList(currentNode.childNode);
+ 
+                <span class="c">// splice the (now fully flattened) child list in right after currentNode</span>
+                currentNode.nextNode = flattenedChildHead;
+                currentNode.childNode = <span class="k">null</span>; <span class="c">// this level no longer has an unflattened child</span>
+ 
+                <span class="c">// find the END of the just-spliced-in child list, to reconnect</span>
+                <span class="c">// it to what was originally currentNode&#x27;s next sibling</span>
+                <span class="t">MultilevelLinkedListNode</span> tailOfChildList = flattenedChildHead;
+                <span class="k">while</span> (tailOfChildList.nextNode != <span class="k">null</span>) {
+                    tailOfChildList = tailOfChildList.nextNode;
+                }
+                tailOfChildList.nextNode = nextSiblingNode;
+            }
+            currentNode = currentNode.nextNode;
+        }
+        <span class="k">return</span> headNode;
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time overall -- although finding the tail of each spliced-in child list involves an extra walk, every node in the entire structure is still visited only a small, bounded number of times in total. O(d) extra space for the recursive call stack, where d is the maximum nesting depth of child lists.</strong></p>
+<h1 id="implementing-a-deque-with-a-doubly-linked-list-4">Implementing a Deque with a Doubly Linked List</h1>
+<p class="question"><strong>Q11. Implement a Deque, with some follow-up on optimization (solved with a doubly linked list).</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/design-circular-deque/" target="_blank" rel="noopener">Related: Design Circular Deque &#8599;</a></span></p>
+<p class="problem">Problem statement: Implement a Deque (double-ended queue) supporting O(1) insertion and removal at BOTH the front and the back, from scratch, using a doubly linked list (rather than relying on Java&#x27;s own built-in ArrayDeque).</p>
+<p>Approach: a doubly linked list -- where each node holds both a nextNode AND a previousNode pointer -- naturally supports O(1) operations at both ends, since no shifting of other elements is ever required (unlike an array-backed implementation, where removing from the front would require shifting every remaining element).</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">DoublyLinkedListNode</span> {
+    <span class="k">int</span> nodeValue;
+    <span class="t">DoublyLinkedListNode</span> nextNode;
+    <span class="t">DoublyLinkedListNode</span> previousNode;
+ 
+    <span class="t">DoublyLinkedListNode</span>(<span class="k">int</span> nodeValue) {
+        <span class="k">this</span>.nodeValue = nodeValue;
+    }
+}
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">CustomDeque</span> {
+ 
+    <span class="k">private</span> <span class="t">DoublyLinkedListNode</span> frontNode;
+    <span class="k">private</span> <span class="t">DoublyLinkedListNode</span> backNode;
+    <span class="k">private</span> <span class="k">int</span> elementCount;
+ 
+    <span class="k">public</span> <span class="k">void</span> addToFront(<span class="k">int</span> newValue) {
+        <span class="t">DoublyLinkedListNode</span> newNode = <span class="k">new</span> <span class="t">DoublyLinkedListNode</span>(newValue);
+        <span class="k">if</span> (frontNode == <span class="k">null</span>) {
+            frontNode = newNode;
+            backNode = newNode;
+        } <span class="k">else</span> {
+            newNode.nextNode = frontNode;
+            frontNode.previousNode = newNode;
+            frontNode = newNode;
+        }
+        elementCount++;
+    }
+ 
+    <span class="k">public</span> <span class="k">void</span> addToBack(<span class="k">int</span> newValue) {
+        <span class="t">DoublyLinkedListNode</span> newNode = <span class="k">new</span> <span class="t">DoublyLinkedListNode</span>(newValue);
+        <span class="k">if</span> (backNode == <span class="k">null</span>) {
+            frontNode = newNode;
+            backNode = newNode;
+        } <span class="k">else</span> {
+            newNode.previousNode = backNode;
+            backNode.nextNode = newNode;
+            backNode = newNode;
+        }
+        elementCount++;
+    }
+ 
+    <span class="k">public</span> <span class="k">int</span> removeFromFront() {
+        <span class="k">if</span> (frontNode == <span class="k">null</span>) {
+            <span class="k">throw</span> <span class="k">new</span> <span class="t">IllegalStateException</span>(<span class="s">&quot;Cannot remove from an empty deque&quot;</span>);
+        }
+        <span class="k">int</span> removedValue = frontNode.nodeValue;
+        frontNode = frontNode.nextNode;
+ 
+        <span class="k">if</span> (frontNode != <span class="k">null</span>) {
+            frontNode.previousNode = <span class="k">null</span>;
+        } <span class="k">else</span> {
+            backNode = <span class="k">null</span>; <span class="c">// the deque is now empty</span>
+        }
+        elementCount--;
+        <span class="k">return</span> removedValue;
+    }
+ 
+    <span class="k">public</span> <span class="k">int</span> removeFromBack() {
+        <span class="k">if</span> (backNode == <span class="k">null</span>) {
+            <span class="k">throw</span> <span class="k">new</span> <span class="t">IllegalStateException</span>(<span class="s">&quot;Cannot remove from an empty deque&quot;</span>);
+        }
+        <span class="k">int</span> removedValue = backNode.nodeValue;
+        backNode = backNode.previousNode;
+ 
+        <span class="k">if</span> (backNode != <span class="k">null</span>) {
+            backNode.nextNode = <span class="k">null</span>;
+        } <span class="k">else</span> {
+            frontNode = <span class="k">null</span>; <span class="c">// the deque is now empty</span>
+        }
+        elementCount--;
+        <span class="k">return</span> removedValue;
+    }
+ 
+    <span class="k">public</span> <span class="k">int</span> getSize() {
+        <span class="k">return</span> elementCount;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">CustomDeque</span> myDeque = <span class="k">new</span> <span class="t">CustomDeque</span>();
+        myDeque.addToBack(<span class="n">1</span>);
+        myDeque.addToBack(<span class="n">2</span>);
+        myDeque.addToFront(<span class="n">0</span>);
+        <span class="c">// deque now holds: 0, 1, 2</span>
+ 
+        <span class="t">System</span>.out.println(myDeque.removeFromFront()); <span class="c">// 0</span>
+        <span class="t">System</span>.out.println(myDeque.removeFromBack());   <span class="c">// 2</span>
+        <span class="t">System</span>.out.println(myDeque.getSize());           <span class="c">// 1</span>
+    }
+}</code></pre>
+<div class="callout"><strong>Note: </strong>The KEY optimization a doubly linked list provides over a SINGLY linked list here is the previousNode pointer -- without it, removeFromBack() would require walking the ENTIRE list from the front just to find the second-to-last node (to become the new back), costing O(n) instead of O(1). Maintaining backNode AND the previousNode chain is precisely what makes BOTH ends of the deque equally fast to operate on.</div>
+<p class="complexity"><strong>Complexity: O(1) time for every operation (addToFront, addToBack, removeFromFront, removeFromBack), O(1) extra space per operation (O(n) total space to store n elements).</strong></p><div class="pager"><span><a href="04-grids-matrices-coin-change-topk.html">&larr; Grids, Matrices, Coin Change &amp; Top-K</a></span><span><a href="06-trees-graphs.html">Trees &amp; Graphs &rarr;</a></span></div></main></div></body></html>

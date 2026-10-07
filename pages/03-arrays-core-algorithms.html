@@ -1,0 +1,561 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Arrays &amp; Core Algorithms</title><link rel="stylesheet" href="../assets/style.css"></head><body>
+<header class="top"><a href="../index.html">&#8962; Index</a><span class="sp"></span><strong>Arrays &amp; Core Algorithms</strong></header>
+<div class="layout"><nav class="toc"><a href="#basic-array-operations-0">Basic Array Operations</a><a href="#finding-specific-elements-1">Finding Specific Elements</a><a href="#subarray-sum-problems-2">Subarray &amp; Sum Problems</a><a href="#two-three-four-sum-target-pair-problems-3">Two/Three/Four Sum &amp; Target Pair Problems</a><a href="#trapping-rain-water-structural-array-problems-4">Trapping Rain Water &amp; Structural Array Problems</a></nav><main><h1 class="title">Java Programming Interview Questions — Document 3a</h1><p class="sub">Arrays — Core Algorithms</p><p>This document covers 1D array algorithms from the supplied question list: merging, rotating, and reversing arrays; finding duplicates, smallest/second-smallest values, and maximum subarray sums; two/three/four-sum variants; trapping rain water; and rotated sorted array searches.</p>
+<p>This is Document 3a of a multi-document set covering all 158 questions from the original spreadsheet. Array-based 2D grid/matrix problems and top-K/frequency problems continue in Document 3b. Duplicate questions from the original list (e.g. &quot;trapping rain water&quot; and &quot;second smallest number&quot; each appeared more than once) have been consolidated.</p>
+<h1 id="basic-array-operations-0">Basic Array Operations</h1>
+<p class="question"><strong>Q1. Reverse the elements in a list (array).</strong></p>
+<p class="problem">Problem statement: Given an array of integers, reverse the order of its elements IN PLACE (without allocating a new array). Example: reverseArrayInPlace({1, 2, 3, 4, 5}) should transform the array into {5, 4, 3, 2, 1}.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">ArrayReverser</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> reverseArrayInPlace(<span class="k">int</span>[] inputArray) {
+        <span class="k">int</span> leftIndex = <span class="n">0</span>;
+        <span class="k">int</span> rightIndex = inputArray.length - <span class="n">1</span>;
+ 
+        <span class="k">while</span> (leftIndex &lt; rightIndex) {
+            <span class="k">int</span> temporaryValue = inputArray[leftIndex];
+            inputArray[leftIndex] = inputArray[rightIndex];
+            inputArray[rightIndex] = temporaryValue;
+            leftIndex++;
+            rightIndex--;
+        }
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[] numberArray = {<span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>, <span class="n">4</span>, <span class="n">5</span>};
+        reverseArrayInPlace(numberArray);
+        <span class="t">System</span>.out.println(java.util.<span class="t">Arrays</span>.toString(numberArray)); <span class="c">// [5, 4, 3, 2, 1]</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time, O(1) extra space, since the array is reversed in place with only two pointers.</strong></p>
+<p class="question"><strong>Q2. Rotate an array by a value of k.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/rotate-array/" target="_blank" rel="noopener">Rotate Array &#8599;</a></span></p>
+<p class="problem">Problem statement: Given an array and an integer rotationAmount, rotate the array to the RIGHT by rotationAmount positions. Example: rotateArrayRight({1, 2, 3, 4, 5, 6, 7}, 3) should produce {5, 6, 7, 1, 2, 3, 4}.</p>
+<p>Approach: the elegant &quot;triple reversal&quot; trick performs the rotation in place using O(1) extra space: reverse the ENTIRE array, then reverse the first rotationAmount elements, then reverse the remaining elements.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">ArrayRotator</span> {
+ 
+    <span class="c">// Reverses the portion of numberArray between startIndex and endIndex, inclusive</span>
+    <span class="k">private</span> <span class="k">static</span> <span class="k">void</span> reverseArrayRange(<span class="k">int</span>[] numberArray, <span class="k">int</span> startIndex, <span class="k">int</span> endIndex) {
+        <span class="k">while</span> (startIndex &lt; endIndex) {
+            <span class="k">int</span> temporaryValue = numberArray[startIndex];
+            numberArray[startIndex] = numberArray[endIndex];
+            numberArray[endIndex] = temporaryValue;
+            startIndex++;
+            endIndex--;
+        }
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> rotateArrayRight(<span class="k">int</span>[] numberArray, <span class="k">int</span> rotationAmount) {
+        <span class="k">int</span> arrayLength = numberArray.length;
+        <span class="c">// normalize in case rotationAmount is larger than the array length</span>
+        <span class="k">int</span> normalizedRotation = rotationAmount % arrayLength;
+        <span class="k">if</span> (normalizedRotation &lt; <span class="n">0</span>) {
+            normalizedRotation += arrayLength;
+        }
+ 
+        <span class="c">// Step 1: reverse the whole array</span>
+        reverseArrayRange(numberArray, <span class="n">0</span>, arrayLength - <span class="n">1</span>);
+        <span class="c">// Step 2: reverse the first &quot;normalizedRotation&quot; elements (now at the front)</span>
+        reverseArrayRange(numberArray, <span class="n">0</span>, normalizedRotation - <span class="n">1</span>);
+        <span class="c">// Step 3: reverse the remaining elements</span>
+        reverseArrayRange(numberArray, normalizedRotation, arrayLength - <span class="n">1</span>);
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[] numberArray = {<span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>, <span class="n">4</span>, <span class="n">5</span>, <span class="n">6</span>, <span class="n">7</span>};
+        rotateArrayRight(numberArray, <span class="n">3</span>);
+        <span class="t">System</span>.out.println(java.util.<span class="t">Arrays</span>.toString(numberArray)); <span class="c">// [5, 6, 7, 1, 2, 3, 4]</span>
+    }
+}</code></pre>
+<div class="callout"><strong>Note: </strong>Walking through why the triple-reversal trick works: reversing the WHOLE array puts every element in reverse order, but this also has the side effect of putting the LAST rotationAmount elements at the FRONT (though themselves individually reversed) and the rest at the back (also individually reversed). Reversing each of those two segments separately un-reverses each segment internally, leaving the overall array correctly rotated.</div>
+<p class="complexity"><strong>Complexity: O(n) time, O(1) extra space.</strong></p>
+<p class="question"><strong>Q3. Merge two sorted arrays (and, separately, merge two arbitrary arrays of numbers).</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/merge-sorted-array/" target="_blank" rel="noopener">Merge Sorted Array &#8599;</a></span></p>
+<p class="problem">Problem statement: Given two arrays, each already sorted in ascending order, merge them into a single, combined sorted array. Example: mergeSortedArrays({1, 3, 5}, {2, 4, 6}) should return {1, 2, 3, 4, 5, 6}.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">SortedArrayMerger</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span>[] mergeSortedArrays(<span class="k">int</span>[] firstArray, <span class="k">int</span>[] secondArray) {
+        <span class="k">int</span>[] mergedResult = <span class="k">new</span> <span class="k">int</span>[firstArray.length + secondArray.length];
+        <span class="k">int</span> firstPointer = <span class="n">0</span>;
+        <span class="k">int</span> secondPointer = <span class="n">0</span>;
+        <span class="k">int</span> mergedPointer = <span class="n">0</span>;
+ 
+        <span class="c">// walk both arrays together, always taking the smaller current element</span>
+        <span class="k">while</span> (firstPointer &lt; firstArray.length &amp;&amp; secondPointer &lt; secondArray.length) {
+            <span class="k">if</span> (firstArray[firstPointer] &lt;= secondArray[secondPointer]) {
+                mergedResult[mergedPointer++] = firstArray[firstPointer++];
+            } <span class="k">else</span> {
+                mergedResult[mergedPointer++] = secondArray[secondPointer++];
+            }
+        }
+        <span class="c">// copy any remaining elements from whichever array still has some left</span>
+        <span class="k">while</span> (firstPointer &lt; firstArray.length) {
+            mergedResult[mergedPointer++] = firstArray[firstPointer++];
+        }
+        <span class="k">while</span> (secondPointer &lt; secondArray.length) {
+            mergedResult[mergedPointer++] = secondArray[secondPointer++];
+        }
+        <span class="k">return</span> mergedResult;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[] mergedArray = mergeSortedArrays(<span class="k">new</span> <span class="k">int</span>[]{<span class="n">1</span>, <span class="n">3</span>, <span class="n">5</span>}, <span class="k">new</span> <span class="k">int</span>[]{<span class="n">2</span>, <span class="n">4</span>, <span class="n">6</span>});
+        <span class="t">System</span>.out.println(java.util.<span class="t">Arrays</span>.toString(mergedArray)); <span class="c">// [1, 2, 3, 4, 5, 6]</span>
+    }
+}</code></pre>
+<p>If the two input arrays are NOT sorted, simply concatenate them and sort the combined result (O((n+m) log(n+m)) time), since there is no useful order to exploit.</p>
+<p class="complexity"><strong>Complexity: O(n + m) time for the sorted-array-merge version, where n and m are the two array lengths. O(n + m) extra space for the result array.</strong></p>
+<p class="question"><strong>Q4. Find the average of an array.</strong></p>
+<p class="problem">Problem statement: Given an array of numbers, compute the arithmetic average (mean) of its elements.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">ArrayAverageCalculator</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">double</span> calculateAverage(<span class="k">int</span>[] numberArray) {
+        <span class="k">if</span> (numberArray.length == <span class="n">0</span>) {
+            <span class="k">throw</span> <span class="k">new</span> <span class="t">IllegalArgumentException</span>(<span class="s">&quot;Cannot compute the average of an empty array&quot;</span>);
+        }
+        <span class="k">long</span> totalSum = <span class="n">0</span>;
+        <span class="k">for</span> (<span class="k">int</span> currentValue : numberArray) {
+            totalSum += currentValue;
+        }
+        <span class="k">return</span> (<span class="k">double</span>) totalSum / numberArray.length;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[] scoresArray = {<span class="n">85</span>, <span class="n">90</span>, <span class="n">78</span>, <span class="n">92</span>, <span class="n">88</span>};
+        <span class="t">System</span>.out.println(calculateAverage(scoresArray)); <span class="c">// 86.6</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time, O(1) extra space.</strong></p>
+<h1 id="finding-specific-elements-1">Finding Specific Elements</h1>
+<p class="question"><strong>Q5. Find the duplicate integer in an array.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/find-the-duplicate-number/" target="_blank" rel="noopener">Find The Duplicate Number &#8599;</a></span></p>
+<p class="problem">Problem statement: Given an array of n+1 integers where every integer is between 1 and n (inclusive), and exactly one value is duplicated (appearing more than once), find that duplicate value. Example: findDuplicateInteger({1, 3, 4, 2, 2}) should return 2.</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">HashSet</span>;
+<span class="k">import</span> java.util.<span class="t">Set</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">DuplicateIntegerFinder</span> {
+ 
+    <span class="c">// Approach using a HashSet: track every value seen so far; the first</span>
+    <span class="c">// value seen AGAIN is the duplicate</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> findDuplicateInteger(<span class="k">int</span>[] numberArray) {
+        <span class="t">Set</span>&lt;<span class="t">Integer</span>&gt; seenValues = <span class="k">new</span> <span class="t">HashSet</span>&lt;&gt;();
+        <span class="k">for</span> (<span class="k">int</span> currentValue : numberArray) {
+            <span class="k">if</span> (!seenValues.add(currentValue)) {
+                <span class="c">// add() returns false if the value was ALREADY present in the set</span>
+                <span class="k">return</span> currentValue;
+            }
+        }
+        <span class="k">throw</span> <span class="k">new</span> <span class="t">IllegalArgumentException</span>(<span class="s">&quot;No duplicate value found in the array&quot;</span>);
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[] numberArray = {<span class="n">1</span>, <span class="n">3</span>, <span class="n">4</span>, <span class="n">2</span>, <span class="n">2</span>};
+        <span class="t">System</span>.out.println(findDuplicateInteger(numberArray)); <span class="c">// 2</span>
+    }
+}</code></pre>
+<div class="callout"><strong>Note: </strong>A more advanced, O(1)-extra-space solution exists using Floyd&#x27;s Cycle Detection (treating the array as a linked structure where each value points to the index it equals, and finding the cycle that the duplicate necessarily creates) -- this is a common, more difficult follow-up question if the interviewer specifically prohibits extra space.</div>
+<p class="complexity"><strong>Complexity: O(n) time, O(n) extra space for the HashSet-based solution.</strong></p>
+<p class="question"><strong>Q6. Find the second smallest number in an array. (Asked multiple times in the original list.)</strong></p>
+<p class="problem">Problem statement: Given an unsorted array of integers, find the SECOND smallest distinct value. Example: findSecondSmallest({5, 2, 8, 2, 9, 1}) should return 2 (the smallest is 1, and the second smallest distinct value is 2).</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">SecondSmallestFinder</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> findSecondSmallest(<span class="k">int</span>[] numberArray) {
+        <span class="k">if</span> (numberArray.length &lt; <span class="n">2</span>) {
+            <span class="k">throw</span> <span class="k">new</span> <span class="t">IllegalArgumentException</span>(<span class="s">&quot;Array must contain at least two distinct values&quot;</span>);
+        }
+ 
+        <span class="k">int</span> smallestValue = <span class="t">Integer</span>.<span class="t">MAX_VALUE</span>;
+        <span class="k">int</span> secondSmallestValue = <span class="t">Integer</span>.<span class="t">MAX_VALUE</span>;
+ 
+        <span class="k">for</span> (<span class="k">int</span> currentValue : numberArray) {
+            <span class="k">if</span> (currentValue &lt; smallestValue) {
+                <span class="c">// current value becomes the new smallest;</span>
+                <span class="c">// the PREVIOUS smallest becomes the new second-smallest</span>
+                secondSmallestValue = smallestValue;
+                smallestValue = currentValue;
+            } <span class="k">else</span> <span class="k">if</span> (currentValue &lt; secondSmallestValue &amp;&amp; currentValue != smallestValue) {
+                <span class="c">// strictly between smallest and secondSmallest, and not a</span>
+                <span class="c">// duplicate of the smallest value</span>
+                secondSmallestValue = currentValue;
+            }
+        }
+ 
+        <span class="k">if</span> (secondSmallestValue == <span class="t">Integer</span>.<span class="t">MAX_VALUE</span>) {
+            <span class="k">throw</span> <span class="k">new</span> <span class="t">IllegalArgumentException</span>(<span class="s">&quot;Array does not contain two distinct values&quot;</span>);
+        }
+        <span class="k">return</span> secondSmallestValue;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[] numberArray = {<span class="n">5</span>, <span class="n">2</span>, <span class="n">8</span>, <span class="n">2</span>, <span class="n">9</span>, <span class="n">1</span>};
+        <span class="t">System</span>.out.println(findSecondSmallest(numberArray)); <span class="c">// 2</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time (a single pass), O(1) extra space -- considerably better than sorting the array first, which would cost O(n log n).</strong></p>
+<p class="question"><strong>Q7. Given a sorted, rotated array, find the minimum element. Must run in O(log n) time.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/" target="_blank" rel="noopener">Find Minimum In Rotated Sorted Array &#8599;</a></span></p>
+<p class="problem">Problem statement: An array was originally sorted in increasing order, but has since been rotated at some unknown pivot point (e.g. {4, 5, 6, 1, 2, 3} was originally {1, 2, 3, 4, 5, 6}, rotated). Find the minimum element, in O(log n) time (ruling out a simple linear scan).</p>
+<p>Approach: use a modified binary search. At each step, compare the middle element to the rightmost element -- this comparison always reveals which half of the current range contains the &quot;rotation point&quot; (and therefore the minimum).</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">RotatedArrayMinimumFinder</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> findMinimumInRotatedArray(<span class="k">int</span>[] rotatedArray) {
+        <span class="k">int</span> leftIndex = <span class="n">0</span>;
+        <span class="k">int</span> rightIndex = rotatedArray.length - <span class="n">1</span>;
+ 
+        <span class="k">while</span> (leftIndex &lt; rightIndex) {
+            <span class="k">int</span> middleIndex = leftIndex + (rightIndex - leftIndex) / <span class="n">2</span>;
+ 
+            <span class="k">if</span> (rotatedArray[middleIndex] &gt; rotatedArray[rightIndex]) {
+                <span class="c">// the minimum must be somewhere to the RIGHT of middleIndex,</span>
+                <span class="c">// since the right half is &quot;broken&quot; (contains the rotation point)</span>
+                leftIndex = middleIndex + <span class="n">1</span>;
+            } <span class="k">else</span> {
+                <span class="c">// the right half, from middleIndex onward, is properly sorted,</span>
+                <span class="c">// so the minimum is at middleIndex OR somewhere to its left</span>
+                rightIndex = middleIndex;
+            }
+        }
+        <span class="k">return</span> rotatedArray[leftIndex]; <span class="c">// leftIndex and rightIndex converge on the minimum</span>
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(findMinimumInRotatedArray(<span class="k">new</span> <span class="k">int</span>[]{<span class="n">4</span>, <span class="n">5</span>, <span class="n">6</span>, <span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>})); <span class="c">// 1</span>
+        <span class="t">System</span>.out.println(findMinimumInRotatedArray(<span class="k">new</span> <span class="k">int</span>[]{<span class="n">6</span>, <span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>, <span class="n">4</span>, <span class="n">5</span>})); <span class="c">// 1</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(log n) time, since the search range is halved at every step (a modified binary search). O(1) extra space.</strong></p>
+<h1 id="subarray-sum-problems-2">Subarray &amp; Sum Problems</h1>
+<p class="question"><strong>Q8. Find the maximum sum subarray.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/maximum-subarray/" target="_blank" rel="noopener">Maximum Subarray &#8599;</a></span></p>
+<p class="problem">Problem statement: Given an array of integers (which may include negative numbers), find the contiguous subarray with the LARGEST sum, and return that sum. Example: findMaximumSubarraySum({-2, 1, -3, 4, -1, 2, 1, -5, 4}) should return 6 (the subarray {4, -1, 2, 1}).</p>
+<p>Approach: Kadane&#x27;s Algorithm -- at each position, decide whether to extend the previous subarray or start a brand new one, keeping whichever choice yields a larger sum.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">MaximumSubarraySumFinder</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> findMaximumSubarraySum(<span class="k">int</span>[] numberArray) {
+        <span class="k">int</span> bestSumEndingHere = numberArray[<span class="n">0</span>];
+        <span class="k">int</span> bestSumOverall = numberArray[<span class="n">0</span>];
+ 
+        <span class="k">for</span> (<span class="k">int</span> currentIndex = <span class="n">1</span>; currentIndex &lt; numberArray.length; currentIndex++) {
+            <span class="c">// either extend the previous subarray, or start fresh at this element</span>
+            bestSumEndingHere = <span class="t">Math</span>.max(numberArray[currentIndex],
+                bestSumEndingHere + numberArray[currentIndex]);
+            bestSumOverall = <span class="t">Math</span>.max(bestSumOverall, bestSumEndingHere);
+        }
+        <span class="k">return</span> bestSumOverall;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[] numberArray = {-<span class="n">2</span>, <span class="n">1</span>, -<span class="n">3</span>, <span class="n">4</span>, -<span class="n">1</span>, <span class="n">2</span>, <span class="n">1</span>, -<span class="n">5</span>, <span class="n">4</span>};
+        <span class="t">System</span>.out.println(findMaximumSubarraySum(numberArray)); <span class="c">// 6</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time (a single pass), O(1) extra space.</strong></p>
+<p class="question"><strong>Q9. Find subarrays whose sum is greater than or equal to a given number.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/minimum-size-subarray-sum/" target="_blank" rel="noopener">Minimum Size Subarray Sum &#8599;</a></span></p>
+<p class="problem">Problem statement: Given an array of positive integers and a target sum, find the LENGTH of the SHORTEST contiguous subarray whose sum is greater than or equal to the target. Example: findShortestSubarrayAtLeastSum({2, 3, 1, 2, 4, 3}, 7) should return 2 (the subarray {4, 3} sums to 7, and is the shortest such subarray).</p>
+<p>Approach: the variable-size sliding window pattern -- expand the window to the right, and whenever its sum meets or exceeds the target, shrink it from the left as much as possible while still satisfying the target, tracking the shortest valid window seen.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">MinimumSubarrayLengthFinder</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> findShortestSubarrayAtLeastSum(<span class="k">int</span>[] numberArray, <span class="k">int</span> targetSum) {
+        <span class="k">int</span> leftBoundary = <span class="n">0</span>;
+        <span class="k">int</span> currentWindowSum = <span class="n">0</span>;
+        <span class="k">int</span> shortestLengthFound = <span class="t">Integer</span>.<span class="t">MAX_VALUE</span>;
+ 
+        <span class="k">for</span> (<span class="k">int</span> rightBoundary = <span class="n">0</span>; rightBoundary &lt; numberArray.length; rightBoundary++) {
+            currentWindowSum += numberArray[rightBoundary]; <span class="c">// expand the window</span>
+ 
+            <span class="c">// shrink the window from the left while it still meets the target</span>
+            <span class="k">while</span> (currentWindowSum &gt;= targetSum) {
+                <span class="k">int</span> currentWindowLength = rightBoundary - leftBoundary + <span class="n">1</span>;
+                shortestLengthFound = <span class="t">Math</span>.min(shortestLengthFound, currentWindowLength);
+ 
+                currentWindowSum -= numberArray[leftBoundary];
+                leftBoundary++;
+            }
+        }
+        <span class="k">return</span> shortestLengthFound == <span class="t">Integer</span>.<span class="t">MAX_VALUE</span> ? <span class="n">0</span> : shortestLengthFound;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[] numberArray = {<span class="n">2</span>, <span class="n">3</span>, <span class="n">1</span>, <span class="n">2</span>, <span class="n">4</span>, <span class="n">3</span>};
+        <span class="t">System</span>.out.println(findShortestSubarrayAtLeastSum(numberArray, <span class="n">7</span>)); <span class="c">// 2</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time -- although there is a nested while loop, each element is added to the window exactly once and removed at most once across the whole run, so the total work remains linear. O(1) extra space.</strong></p>
+<p class="question"><strong>Q10. Find the minimum sum of integers equal to or less than a given number.</strong></p>
+<p class="problem">Problem statement: Given an array of positive integers and a target upper bound, find the MAXIMUM possible sum of a subset of the array&#x27;s elements that does not EXCEED the target. (Interpreting the original question&#x27;s intent: among all subsets whose sum is at most the target, find the one closest to -- i.e. the largest sum not exceeding -- the target.) Example: findClosestSumNotExceeding({3, 7, 2, 9}, 12) should return 12 (using 3 + 9, or checking other subsets, whichever combination gets closest to but not over 12).</p>
+<p>Approach: this is a variation of the classic 0/1 Knapsack problem -- decide, for each element, whether to include it or not, to maximize the resulting sum without exceeding the target.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">ClosestSubsetSumFinder</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> findClosestSumNotExceeding(<span class="k">int</span>[] numberArray, <span class="k">int</span> targetUpperBound) {
+        <span class="c">// achievableSums[amount] = true if some subset of the array sums to EXACTLY &quot;amount&quot;</span>
+        <span class="k">boolean</span>[] achievableSums = <span class="k">new</span> <span class="k">boolean</span>[targetUpperBound + <span class="n">1</span>];
+        achievableSums[<span class="n">0</span>] = <span class="k">true</span>; <span class="c">// a sum of 0 is always achievable (the empty subset)</span>
+ 
+        <span class="k">for</span> (<span class="k">int</span> currentValue : numberArray) {
+            <span class="c">// iterate the achievable-sums table BACKWARD to avoid reusing the</span>
+            <span class="c">// same array element more than once within a single subset</span>
+            <span class="k">for</span> (<span class="k">int</span> currentAmount = targetUpperBound; currentAmount &gt;= currentValue; currentAmount--) {
+                <span class="k">if</span> (achievableSums[currentAmount - currentValue]) {
+                    achievableSums[currentAmount] = <span class="k">true</span>;
+                }
+            }
+        }
+ 
+        <span class="c">// search downward from the target for the largest achievable sum</span>
+        <span class="k">for</span> (<span class="k">int</span> currentAmount = targetUpperBound; currentAmount &gt;= <span class="n">0</span>; currentAmount--) {
+            <span class="k">if</span> (achievableSums[currentAmount]) {
+                <span class="k">return</span> currentAmount;
+            }
+        }
+        <span class="k">return</span> <span class="n">0</span>;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[] numberArray = {<span class="n">3</span>, <span class="n">7</span>, <span class="n">2</span>, <span class="n">9</span>};
+        <span class="t">System</span>.out.println(findClosestSumNotExceeding(numberArray, <span class="n">12</span>)); <span class="c">// 12 (3 + 9)</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n x targetUpperBound) time and space, a classic 0/1 Knapsack-style dynamic programming solution.</strong></p>
+<h1 id="two-three-four-sum-target-pair-problems-3">Two/Three/Four Sum &amp; Target Pair Problems</h1>
+<p class="question"><strong>Q11. 2 Sum, 3 Sum, and 4 Sum problems.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/two-sum/" target="_blank" rel="noopener">Two Sum &#8599;</a> <a class="lc" href="https://leetcode.com/problems/3sum/" target="_blank" rel="noopener">3Sum &#8599;</a> <a class="lc" href="https://leetcode.com/problems/4sum/" target="_blank" rel="noopener">4Sum &#8599;</a></span></p>
+<p class="problem">Problem statement: 2Sum: given an array and a target, find two numbers that add up to the target. 3Sum: find three numbers that add up to a target (commonly zero). 4Sum: find four numbers that add up to a target. All three are variations on the same underlying two-pointer technique.</p>
+<h2 id="2sum-using-a-hashmap-for-unsorted-input-o-n-time-4">2Sum (using a HashMap for unsorted input, O(n) time)</h2>
+<pre><code><span class="k">import</span> java.util.<span class="t">HashMap</span>;
+<span class="k">import</span> java.util.<span class="t">Map</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">TwoSumFinder</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span>[] findTwoNumbersSummingToTarget(<span class="k">int</span>[] numberArray, <span class="k">int</span> targetSum) {
+        <span class="t">Map</span>&lt;<span class="t">Integer</span>, <span class="t">Integer</span>&gt; valueToIndexMap = <span class="k">new</span> <span class="t">HashMap</span>&lt;&gt;();
+ 
+        <span class="k">for</span> (<span class="k">int</span> currentIndex = <span class="n">0</span>; currentIndex &lt; numberArray.length; currentIndex++) {
+            <span class="k">int</span> requiredComplement = targetSum - numberArray[currentIndex];
+            <span class="k">if</span> (valueToIndexMap.containsKey(requiredComplement)) {
+                <span class="k">return</span> <span class="k">new</span> <span class="k">int</span>[]{valueToIndexMap.get(requiredComplement), currentIndex};
+            }
+            valueToIndexMap.put(numberArray[currentIndex], currentIndex);
+        }
+        <span class="k">return</span> <span class="k">new</span> <span class="k">int</span>[]{-<span class="n">1</span>, -<span class="n">1</span>}; <span class="c">// no valid pair found</span>
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[] resultIndices = findTwoNumbersSummingToTarget(<span class="k">new</span> <span class="k">int</span>[]{<span class="n">2</span>, <span class="n">7</span>, <span class="n">11</span>, <span class="n">15</span>}, <span class="n">9</span>);
+        <span class="t">System</span>.out.println(java.util.<span class="t">Arrays</span>.toString(resultIndices)); <span class="c">// [0, 1]</span>
+    }
+}</code></pre>
+<h2 id="3sum-sort-first-then-two-pointer-for-each-fixed-element-4">3Sum (sort first, then two-pointer for each fixed element)</h2>
+<pre><code><span class="k">import</span> java.util.<span class="t">ArrayList</span>;
+<span class="k">import</span> java.util.<span class="t">Arrays</span>;
+<span class="k">import</span> java.util.<span class="t">List</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">ThreeSumFinder</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="t">List</span>&lt;<span class="t">List</span>&lt;<span class="t">Integer</span>&gt;&gt; findAllTripletsSummingToZero(<span class="k">int</span>[] numberArray) {
+        <span class="t">Arrays</span>.sort(numberArray); <span class="c">// sorting enables the two-pointer scan below</span>
+        <span class="t">List</span>&lt;<span class="t">List</span>&lt;<span class="t">Integer</span>&gt;&gt; resultTriplets = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
+ 
+        <span class="k">for</span> (<span class="k">int</span> fixedIndex = <span class="n">0</span>; fixedIndex &lt; numberArray.length - <span class="n">2</span>; fixedIndex++) {
+            <span class="k">if</span> (fixedIndex &gt; <span class="n">0</span> &amp;&amp; numberArray[fixedIndex] == numberArray[fixedIndex - <span class="n">1</span>]) {
+                <span class="k">continue</span>; <span class="c">// skip duplicate &quot;fixed&quot; values to avoid duplicate triplets</span>
+            }
+ 
+            <span class="k">int</span> leftIndex = fixedIndex + <span class="n">1</span>;
+            <span class="k">int</span> rightIndex = numberArray.length - <span class="n">1</span>;
+ 
+            <span class="k">while</span> (leftIndex &lt; rightIndex) {
+                <span class="k">int</span> tripletSum = numberArray[fixedIndex] + numberArray[leftIndex] + numberArray[rightIndex];
+ 
+                <span class="k">if</span> (tripletSum == <span class="n">0</span>) {
+                    resultTriplets.add(<span class="t">Arrays</span>.asList(
+                        numberArray[fixedIndex], numberArray[leftIndex], numberArray[rightIndex]));
+                    <span class="k">while</span> (leftIndex &lt; rightIndex &amp;&amp; numberArray[leftIndex] == numberArray[leftIndex + <span class="n">1</span>]) leftIndex++;
+                    <span class="k">while</span> (leftIndex &lt; rightIndex &amp;&amp; numberArray[rightIndex] == numberArray[rightIndex - <span class="n">1</span>]) rightIndex--;
+                    leftIndex++;
+                    rightIndex--;
+                } <span class="k">else</span> <span class="k">if</span> (tripletSum &lt; <span class="n">0</span>) {
+                    leftIndex++;
+                } <span class="k">else</span> {
+                    rightIndex--;
+                }
+            }
+        }
+        <span class="k">return</span> resultTriplets;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(findAllTripletsSummingToZero(<span class="k">new</span> <span class="k">int</span>[]{-<span class="n">1</span>, <span class="n">0</span>, <span class="n">1</span>, <span class="n">2</span>, -<span class="n">1</span>, -<span class="n">4</span>}));
+        <span class="c">// [[-1, -1, 2], [-1, 0, 1]]</span>
+    }
+}</code></pre>
+<h2 id="4sum-fix-two-elements-two-pointer-the-rest-4">4Sum (fix two elements, two-pointer the rest)</h2>
+<pre><code><span class="k">import</span> java.util.<span class="t">ArrayList</span>;
+<span class="k">import</span> java.util.<span class="t">Arrays</span>;
+<span class="k">import</span> java.util.<span class="t">List</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">FourSumFinder</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="t">List</span>&lt;<span class="t">List</span>&lt;<span class="t">Integer</span>&gt;&gt; findAllQuadrupletsSummingToTarget(<span class="k">int</span>[] numberArray, <span class="k">int</span> targetSum) {
+        <span class="t">Arrays</span>.sort(numberArray);
+        <span class="t">List</span>&lt;<span class="t">List</span>&lt;<span class="t">Integer</span>&gt;&gt; resultQuadruplets = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
+        <span class="k">int</span> arrayLength = numberArray.length;
+ 
+        <span class="k">for</span> (<span class="k">int</span> firstIndex = <span class="n">0</span>; firstIndex &lt; arrayLength - <span class="n">3</span>; firstIndex++) {
+            <span class="k">if</span> (firstIndex &gt; <span class="n">0</span> &amp;&amp; numberArray[firstIndex] == numberArray[firstIndex - <span class="n">1</span>]) <span class="k">continue</span>;
+ 
+            <span class="k">for</span> (<span class="k">int</span> secondIndex = firstIndex + <span class="n">1</span>; secondIndex &lt; arrayLength - <span class="n">2</span>; secondIndex++) {
+                <span class="k">if</span> (secondIndex &gt; firstIndex + <span class="n">1</span> &amp;&amp; numberArray[secondIndex] == numberArray[secondIndex - <span class="n">1</span>]) <span class="k">continue</span>;
+ 
+                <span class="k">int</span> leftIndex = secondIndex + <span class="n">1</span>;
+                <span class="k">int</span> rightIndex = arrayLength - <span class="n">1</span>;
+ 
+                <span class="k">while</span> (leftIndex &lt; rightIndex) {
+                    <span class="k">long</span> quadrupletSum = (<span class="k">long</span>) numberArray[firstIndex] + numberArray[secondIndex]
+                        + numberArray[leftIndex] + numberArray[rightIndex];
+ 
+                    <span class="k">if</span> (quadrupletSum == targetSum) {
+                        resultQuadruplets.add(<span class="t">Arrays</span>.asList(numberArray[firstIndex], numberArray[secondIndex],
+                            numberArray[leftIndex], numberArray[rightIndex]));
+                        <span class="k">while</span> (leftIndex &lt; rightIndex &amp;&amp; numberArray[leftIndex] == numberArray[leftIndex + <span class="n">1</span>]) leftIndex++;
+                        <span class="k">while</span> (leftIndex &lt; rightIndex &amp;&amp; numberArray[rightIndex] == numberArray[rightIndex - <span class="n">1</span>]) rightIndex--;
+                        leftIndex++;
+                        rightIndex--;
+                    } <span class="k">else</span> <span class="k">if</span> (quadrupletSum &lt; targetSum) {
+                        leftIndex++;
+                    } <span class="k">else</span> {
+                        rightIndex--;
+                    }
+                }
+            }
+        }
+        <span class="k">return</span> resultQuadruplets;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(findAllQuadrupletsSummingToTarget(<span class="k">new</span> <span class="k">int</span>[]{<span class="n">1</span>, <span class="n">0</span>, -<span class="n">1</span>, <span class="n">0</span>, -<span class="n">2</span>, <span class="n">2</span>}, <span class="n">0</span>));
+        <span class="c">// [[-2, -1, 1, 2], [-2, 0, 0, 2], [-1, 0, 0, 1]]</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: 2Sum is O(n) time using a HashMap. 3Sum is O(n^2) time (an O(n) outer loop combined with an O(n) two-pointer scan for each fixed element). 4Sum is O(n^3) time (two nested fixed loops combined with an O(n) two-pointer scan). This pattern generalizes: kSum generally costs O(n^(k-1)) time using this fix-and-two-pointer technique.</strong></p>
+<p class="question"><strong>Q12. Given two arrays and a target sum, check whether a pair (one element from each array) can reach the target sum.</strong></p>
+<p class="problem">Problem statement: Given two arrays and a target sum, determine whether there EXISTS a pair of numbers -- one taken from EACH array -- that adds up to exactly the target. Example: canFormTargetPair({1, 2, 3}, {4, 5, 6}, 9) should return true (3 + 6 = 9).</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">HashSet</span>;
+<span class="k">import</span> java.util.<span class="t">Set</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">CrossArrayPairFinder</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">boolean</span> canFormTargetPair(<span class="k">int</span>[] firstArray, <span class="k">int</span>[] secondArray, <span class="k">int</span> targetSum) {
+        <span class="t">Set</span>&lt;<span class="t">Integer</span>&gt; firstArrayValues = <span class="k">new</span> <span class="t">HashSet</span>&lt;&gt;();
+        <span class="k">for</span> (<span class="k">int</span> currentValue : firstArray) {
+            firstArrayValues.add(currentValue);
+        }
+ 
+        <span class="k">for</span> (<span class="k">int</span> currentValue : secondArray) {
+            <span class="k">int</span> requiredComplement = targetSum - currentValue;
+            <span class="k">if</span> (firstArrayValues.contains(requiredComplement)) {
+                <span class="k">return</span> <span class="k">true</span>;
+            }
+        }
+        <span class="k">return</span> <span class="k">false</span>;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(canFormTargetPair(<span class="k">new</span> <span class="k">int</span>[]{<span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>}, <span class="k">new</span> <span class="k">int</span>[]{<span class="n">4</span>, <span class="n">5</span>, <span class="n">6</span>}, <span class="n">9</span>)); <span class="c">// true</span>
+        <span class="t">System</span>.out.println(canFormTargetPair(<span class="k">new</span> <span class="k">int</span>[]{<span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>}, <span class="k">new</span> <span class="k">int</span>[]{<span class="n">4</span>, <span class="n">5</span>, <span class="n">6</span>}, <span class="n">20</span>)); <span class="c">// false</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n + m) time, where n and m are the two array lengths. O(n) extra space for the HashSet.</strong></p>
+<p class="question"><strong>Q13. Return the total number of possible pairs that add up to a target.</strong></p>
+<p class="problem">Problem statement: Given an array of integers and a target sum, count how many DISTINCT PAIRS of elements (by index) add up to the target. Example: countPairsSummingToTarget({1, 5, 7, -1, 5}, 6) should return 3 (pairs: (1,5) at indices 0,1; (7,-1) at indices 2,3; (1,5) at indices 0,4).</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">HashMap</span>;
+<span class="k">import</span> java.util.<span class="t">Map</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">TargetPairCounter</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> countPairsSummingToTarget(<span class="k">int</span>[] numberArray, <span class="k">int</span> targetSum) {
+        <span class="t">Map</span>&lt;<span class="t">Integer</span>, <span class="t">Integer</span>&gt; valueFrequencyMap = <span class="k">new</span> <span class="t">HashMap</span>&lt;&gt;();
+        <span class="k">int</span> pairCount = <span class="n">0</span>;
+ 
+        <span class="k">for</span> (<span class="k">int</span> currentValue : numberArray) {
+            <span class="k">int</span> requiredComplement = targetSum - currentValue;
+ 
+            <span class="c">// add however many times the complement has already been seen --</span>
+            <span class="c">// each prior occurrence forms a valid pair with the current element</span>
+            pairCount += valueFrequencyMap.getOrDefault(requiredComplement, <span class="n">0</span>);
+ 
+            valueFrequencyMap.merge(currentValue, <span class="n">1</span>, <span class="t">Integer</span>::sum);
+        }
+        <span class="k">return</span> pairCount;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[] numberArray = {<span class="n">1</span>, <span class="n">5</span>, <span class="n">7</span>, -<span class="n">1</span>, <span class="n">5</span>};
+        <span class="t">System</span>.out.println(countPairsSummingToTarget(numberArray, <span class="n">6</span>)); <span class="c">// 3</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time, O(n) extra space for the frequency map.</strong></p>
+<h1 id="trapping-rain-water-structural-array-problems-4">Trapping Rain Water &amp; Structural Array Problems</h1>
+<p class="question"><strong>Q14. Trapping rain water. (Asked multiple times in the original list.)</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/trapping-rain-water/" target="_blank" rel="noopener">Trapping Rain Water &#8599;</a></span></p>
+<p class="problem">Problem statement: Given an array of non-negative integers representing an elevation map (each value is a bar&#x27;s height, with width 1), compute how much rainwater the terrain can TRAP between the bars after it rains. Example: calculateTrappedWater({0,1,0,2,1,0,1,3,2,1,2,1}) should return 6.</p>
+<p>Approach: for each position, the amount of water it can hold is determined by the SHORTER of the tallest bar to its left and the tallest bar to its right (water can&#x27;t rise higher than the shorter of the two &quot;walls&quot; containing it), minus the height of the bar at that position itself (if positive).</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">TrappedRainWaterCalculator</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> calculateTrappedWater(<span class="k">int</span>[] elevationHeights) {
+        <span class="k">if</span> (elevationHeights.length == <span class="n">0</span>) {
+            <span class="k">return</span> <span class="n">0</span>;
+        }
+ 
+        <span class="k">int</span> leftIndex = <span class="n">0</span>;
+        <span class="k">int</span> rightIndex = elevationHeights.length - <span class="n">1</span>;
+        <span class="k">int</span> tallestFromLeft = <span class="n">0</span>;
+        <span class="k">int</span> tallestFromRight = <span class="n">0</span>;
+        <span class="k">int</span> totalTrappedWater = <span class="n">0</span>;
+ 
+        <span class="c">// two-pointer approach: always process the side with the SHORTER</span>
+        <span class="c">// current wall, since that side&#x27;s trapped-water amount is already</span>
+        <span class="c">// fully determined by the taller wall on the OTHER side</span>
+        <span class="k">while</span> (leftIndex &lt; rightIndex) {
+            <span class="k">if</span> (elevationHeights[leftIndex] &lt; elevationHeights[rightIndex]) {
+                tallestFromLeft = <span class="t">Math</span>.max(tallestFromLeft, elevationHeights[leftIndex]);
+                totalTrappedWater += tallestFromLeft - elevationHeights[leftIndex];
+                leftIndex++;
+            } <span class="k">else</span> {
+                tallestFromRight = <span class="t">Math</span>.max(tallestFromRight, elevationHeights[rightIndex]);
+                totalTrappedWater += tallestFromRight - elevationHeights[rightIndex];
+                rightIndex--;
+            }
+        }
+        <span class="k">return</span> totalTrappedWater;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[] elevationHeights = {<span class="n">0</span>, <span class="n">1</span>, <span class="n">0</span>, <span class="n">2</span>, <span class="n">1</span>, <span class="n">0</span>, <span class="n">1</span>, <span class="n">3</span>, <span class="n">2</span>, <span class="n">1</span>, <span class="n">2</span>, <span class="n">1</span>};
+        <span class="t">System</span>.out.println(calculateTrappedWater(elevationHeights)); <span class="c">// 6</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time (a single pass with two pointers), O(1) extra space -- an improvement over the more intuitive brute-force approach of precomputing full left-max and right-max arrays (which uses O(n) extra space).</strong></p>
+<p class="question"><strong>Q15. Given an array of integers, can you rearrange it into a series like a1 &lt;= a2 &gt;= a3 &lt;= a4 ... (a &quot;wiggle&quot; or &quot;zigzag&quot; pattern)?</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/wiggle-sort/" target="_blank" rel="noopener">Wiggle Sort &#8599;</a></span></p>
+<p class="problem">Problem statement: Given an array, rearrange its elements so that they alternate between being less-than-or-equal-to and greater-than-or-equal-to their neighbors, forming a zigzag pattern. Example: rearrangeIntoZigzagPattern({3, 5, 2, 1, 6, 4}) should produce an array such as {3, 5, 1, 6, 2, 4}, where element[0] &lt;= element[1] &gt;= element[2] &lt;= element[3] &gt;= element[4] &lt;= element[5].</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">ZigzagArrangementBuilder</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> rearrangeIntoZigzagPattern(<span class="k">int</span>[] numberArray) {
+        <span class="k">for</span> (<span class="k">int</span> currentIndex = <span class="n">0</span>; currentIndex &lt; numberArray.length - <span class="n">1</span>; currentIndex++) {
+            <span class="c">// determine whether THIS position should be a &quot;peak&quot; (&gt;=) or</span>
+            <span class="c">// a &quot;valley&quot; (&lt;=) relative to the NEXT element</span>
+            <span class="k">boolean</span> shouldBeGreaterOrEqual = (currentIndex % <span class="n">2</span> == <span class="n">0</span>);
+ 
+            <span class="k">boolean</span> currentlySatisfiesCondition = shouldBeGreaterOrEqual
+                ? numberArray[currentIndex] &gt;= numberArray[currentIndex + <span class="n">1</span>]
+                : numberArray[currentIndex] &lt;= numberArray[currentIndex + <span class="n">1</span>];
+ 
+            <span class="k">if</span> (!currentlySatisfiesCondition) {
+                <span class="c">// swap this element with the next one to satisfy the required</span>
+                <span class="c">// relationship at this position</span>
+                <span class="k">int</span> temporaryValue = numberArray[currentIndex];
+                numberArray[currentIndex] = numberArray[currentIndex + <span class="n">1</span>];
+                numberArray[currentIndex + <span class="n">1</span>] = temporaryValue;
+            }
+        }
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[] numberArray = {<span class="n">3</span>, <span class="n">5</span>, <span class="n">2</span>, <span class="n">1</span>, <span class="n">6</span>, <span class="n">4</span>};
+        rearrangeIntoZigzagPattern(numberArray);
+        <span class="t">System</span>.out.println(java.util.<span class="t">Arrays</span>.toString(numberArray));
+        <span class="c">// A valid zigzag arrangement, e.g. [3, 5, 1, 6, 2, 4]</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time (a single greedy pass, swapping adjacent elements as needed), O(1) extra space (the rearrangement happens in place).</strong></p><div class="pager"><span><a href="02-strings.html">&larr; Strings</a></span><span><a href="04-grids-matrices-coin-change-topk.html">Grids, Matrices, Coin Change &amp; Top-K &rarr;</a></span></div></main></div></body></html>

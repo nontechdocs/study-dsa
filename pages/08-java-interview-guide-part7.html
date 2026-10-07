@@ -1,0 +1,404 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Java Interview Guide - Part 7</title><link rel="stylesheet" href="../assets/style.css"></head><body>
+<header class="top"><a href="../index.html">&#8962; Index</a><span class="sp"></span><strong>Java Interview Guide - Part 7</strong></header>
+<div class="layout"><nav class="toc"><a href="#array-string-problems-0">Array &amp; String Problems</a><a href="#sorting-searching-recursion-1">Sorting, Searching &amp; Recursion</a><a href="#linked-lists-data-structure-design-2">Linked Lists &amp; Data Structure Design</a><a href="#object-oriented-design-elevator-system-3">Object-Oriented Design: Elevator System</a><a href="#string-handling-conceptual-questions-4">String Handling: Conceptual Questions</a><a href="#dynamic-programming-decode-ways-5">Dynamic Programming: Decode Ways</a></nav><main><h1 class="title">Java Interview Guide — Part 7</h1><p class="sub">Programming &amp;amp; Coding Interview Questions — Full Solutions</p><p>This is Part 7, the final part, of a 7-part Java interview preparation guide. The original source material listed these as bare problem prompts with no code or explanation — a typical &quot;practice list&quot; an interviewer might draw from. Every problem below has been given a complete problem statement, a worked Java solution, a complexity analysis, and an explanation of the approach.</p>
+<p>Where a problem is conceptual rather than algorithmic (e.g. comparing String/StringBuilder/StringBuffer), a full written answer is given instead of code.</p>
+<h1 id="array-string-problems-0">Array &amp; String Problems</h1>
+<p class="question"><strong>Q1. Swap two integers without using extra space (no temporary variable).</strong></p>
+<p>Problem: Given two integer variables, swap their values without declaring a third (temporary) variable.</p>
+<p>Approach: Use arithmetic (addition/subtraction) or the bitwise XOR trick. XOR is generally preferred in interviews because it avoids the (admittedly unlikely in modern Java) risk of integer overflow that the addition/subtraction approach has with very large values.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">SwapWithoutExtraSpace</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> swapUsingXor(<span class="k">int</span>[] numbers, <span class="k">int</span> firstIndex, <span class="k">int</span> secondIndex) {
+        <span class="k">if</span> (firstIndex == secondIndex) {
+            <span class="k">return</span>; <span class="c">// XOR-swapping a value with itself would zero it out -- guard against this</span>
+        }
+        numbers[firstIndex] = numbers[firstIndex] ^ numbers[secondIndex];
+        numbers[secondIndex] = numbers[firstIndex] ^ numbers[secondIndex];
+        numbers[firstIndex] = numbers[firstIndex] ^ numbers[secondIndex];
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] args) {
+        <span class="k">int</span>[] values = {<span class="n">5</span>, <span class="n">12</span>};
+        swapUsingXor(values, <span class="n">0</span>, <span class="n">1</span>);
+        <span class="t">System</span>.out.println(values[<span class="n">0</span>] + <span class="s">&quot;, &quot;</span> + values[<span class="n">1</span>]); <span class="c">// 12, 5</span>
+    }
+}</code></pre>
+<p>Why it works: XOR-ing a value with itself always produces 0, and XOR-ing any value with 0 returns that value unchanged. Working through it: after step 1, numbers[firstIndex] holds (a XOR b). After step 2, numbers[secondIndex] becomes (a XOR b) XOR b = a. After step 3, numbers[firstIndex] becomes (a XOR b) XOR a = b. The two values have swapped.</p>
+<div class="callout"><strong>Note: </strong>This trick is a common interview talking point, but it&#x27;s rarely used in real production code — a plain temporary variable is clearer, and on modern hardware the XOR version isn&#x27;t meaningfully faster. It&#x27;s also NOT safe if firstIndex == secondIndex refers to the same memory location (as guarded above), and it doesn&#x27;t generalize to non-integer types.</div>
+<p class="complexity"><strong>Complexity: O(1) time, O(1) extra space.</strong></p>
+<p class="question"><strong>Q2. Reverse a string using a HashMap-based approach.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/reverse-string/" target="_blank" rel="noopener">Related: Reverse String &#8599;</a></span></p>
+<p>Problem: Reverse the characters of a string. (The original prompt specifically mentions using a HashMap; the most natural HashMap-flavored approach is to record each character&#x27;s original index, though a two-pointer swap is simpler and more efficient for plain reversal — both are shown below for comparison.)</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">LinkedHashMap</span>;
+<span class="k">import</span> java.util.<span class="t">Map</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">ReverseStringWithMap</span> {
+ 
+    <span class="c">// HashMap-based approach: map each position to its character, then</span>
+    <span class="c">// rebuild the string by reading the map&#x27;s keys in reverse order.</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="t">String</span> reverseUsingMap(<span class="t">String</span> inputText) {
+        <span class="t">Map</span>&lt;<span class="t">Integer</span>, <span class="t">Character</span>&gt; indexToCharacter = <span class="k">new</span> <span class="t">LinkedHashMap</span>&lt;&gt;();
+        <span class="k">for</span> (<span class="k">int</span> index = <span class="n">0</span>; index &lt; inputText.length(); index++) {
+            indexToCharacter.put(index, inputText.charAt(index));
+        }
+ 
+        <span class="t">StringBuilder</span> reversedBuilder = <span class="k">new</span> <span class="t">StringBuilder</span>();
+        <span class="k">for</span> (<span class="k">int</span> index = inputText.length() - <span class="n">1</span>; index &gt;= <span class="n">0</span>; index--) {
+            reversedBuilder.append(indexToCharacter.get(index));
+        }
+        <span class="k">return</span> reversedBuilder.toString();
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] args) {
+        <span class="t">System</span>.out.println(reverseUsingMap(<span class="s">&quot;interview&quot;</span>)); <span class="c">// weivretni</span>
+    }
+}</code></pre>
+<div class="callout"><strong>Note: </strong>A HashMap is not actually the natural data structure for this problem — it adds O(n) extra space and hashing overhead for no real benefit here. It&#x27;s included because it was explicitly asked for, but in a real interview it&#x27;s worth mentioning the simpler, more efficient two-pointer approach shown in the next question, and explaining why it&#x27;s preferable.</div>
+<p class="complexity"><strong>Complexity (HashMap approach): O(n) time, O(n) extra space (for the map and the StringBuilder).</strong></p>
+<p class="question"><strong>Q3. Convert a decimal number to its binary representation.</strong></p>
+<p>Problem: Given a non-negative decimal integer, produce its binary (base-2) string representation, without using a built-in conversion method.</p>
+<p>Approach: Repeatedly divide the number by 2, recording the remainder (0 or 1) at each step — these remainders, read in reverse order (last computed to first), form the binary representation. A stack (or simply prepending to a StringBuilder) naturally reverses this order for you.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">DecimalToBinary</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="t">String</span> convertToBinary(<span class="k">int</span> decimalValue) {
+        <span class="k">if</span> (decimalValue == <span class="n">0</span>) {
+            <span class="k">return</span> <span class="s">&quot;0&quot;</span>;
+        }
+ 
+        <span class="t">StringBuilder</span> binaryBuilder = <span class="k">new</span> <span class="t">StringBuilder</span>();
+        <span class="k">int</span> remainingValue = decimalValue;
+ 
+        <span class="k">while</span> (remainingValue &gt; <span class="n">0</span>) {
+            <span class="k">int</span> currentBit = remainingValue % <span class="n">2</span>;
+            binaryBuilder.insert(<span class="n">0</span>, currentBit); <span class="c">// prepend -- builds the string in correct order</span>
+            remainingValue = remainingValue / <span class="n">2</span>;
+        }
+        <span class="k">return</span> binaryBuilder.toString();
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] args) {
+        <span class="t">System</span>.out.println(convertToBinary(<span class="n">13</span>));  <span class="c">// 1101</span>
+        <span class="t">System</span>.out.println(convertToBinary(<span class="n">0</span>));   <span class="c">// 0</span>
+        <span class="t">System</span>.out.println(convertToBinary(<span class="n">255</span>)); <span class="c">// 11111111</span>
+ 
+        <span class="c">// Built-in equivalent, for comparison:</span>
+        <span class="t">System</span>.out.println(<span class="t">Integer</span>.toBinaryString(<span class="n">13</span>)); <span class="c">// 1101</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(log n) time (the number of bits needed is proportional to log2(n)), O(log n) space for the result string.</strong></p>
+<p class="question"><strong>Q4. Return the size (length) of the last word in a sentence.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/length-of-last-word/" target="_blank" rel="noopener">Length Of Last Word &#8599;</a></span></p>
+<p>Problem: Given a string consisting of words separated by spaces, return the length of the last word. Example: &quot;Hello World&quot; -&gt; 5. &quot;Hello &quot; (trailing space) -&gt; 5. &quot;&quot; (empty string) -&gt; 0.</p>
+<p>Approach: The cleanest approach walks backward from the end of the string: first skip any trailing spaces, then count characters until the next space (or the start of the string) is reached.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">LastWordLength</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> lengthOfLastWord(<span class="t">String</span> sentence) {
+        <span class="k">int</span> index = sentence.length() - <span class="n">1</span>;
+ 
+        <span class="c">// skip any trailing spaces</span>
+        <span class="k">while</span> (index &gt;= <span class="n">0</span> &amp;&amp; sentence.charAt(index) == <span class="s">&#x27; &#x27;</span>) {
+            index--;
+        }
+ 
+        <span class="k">int</span> lastWordLength = <span class="n">0</span>;
+        <span class="c">// count backward through the last word&#x27;s characters</span>
+        <span class="k">while</span> (index &gt;= <span class="n">0</span> &amp;&amp; sentence.charAt(index) != <span class="s">&#x27; &#x27;</span>) {
+            lastWordLength++;
+            index--;
+        }
+ 
+        <span class="k">return</span> lastWordLength;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] args) {
+        <span class="t">System</span>.out.println(lengthOfLastWord(<span class="s">&quot;Hello World&quot;</span>)); <span class="c">// 5</span>
+        <span class="t">System</span>.out.println(lengthOfLastWord(<span class="s">&quot;Hello &quot;</span>));      <span class="c">// 5</span>
+        <span class="t">System</span>.out.println(lengthOfLastWord(<span class="s">&quot;&quot;</span>));            <span class="c">// 0</span>
+        <span class="t">System</span>.out.println(lengthOfLastWord(<span class="s">&quot;   &quot;</span>));         <span class="c">// 0</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time in the worst case, O(1) extra space.</strong></p>
+<p class="question"><strong>Q5. Given a number greater than 9, repeatedly sum its digits until the result is a single digit less than 10 (the &quot;digital root&quot;).</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/add-digits/" target="_blank" rel="noopener">Add Digits &#8599;</a></span></p>
+<p>Problem: For example, 38 -&gt; 3+8 = 11 -&gt; 1+1 = 2. Stop once the result is less than 10.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">DigitalRoot</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> computeDigitalRoot(<span class="k">int</span> inputNumber) {
+        <span class="k">int</span> currentValue = inputNumber;
+ 
+        <span class="k">while</span> (currentValue &gt;= <span class="n">10</span>) {
+            <span class="k">int</span> digitSum = <span class="n">0</span>;
+            <span class="k">int</span> remainingValue = currentValue;
+ 
+            <span class="k">while</span> (remainingValue &gt; <span class="n">0</span>) {
+                digitSum += remainingValue % <span class="n">10</span>; <span class="c">// extract the last digit and add it</span>
+                remainingValue /= <span class="n">10</span>;             <span class="c">// drop the last digit</span>
+            }
+            currentValue = digitSum;
+        }
+        <span class="k">return</span> currentValue;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] args) {
+        <span class="t">System</span>.out.println(computeDigitalRoot(<span class="n">38</span>)); <span class="c">// 2   (38 -&gt; 11 -&gt; 2)</span>
+        <span class="t">System</span>.out.println(computeDigitalRoot(<span class="n">9875</span>)); <span class="c">// 2 (9875 -&gt; 29 -&gt; 11 -&gt; 2)</span>
+    }
+}</code></pre>
+<div class="callout"><strong>Note: </strong>There&#x27;s also an elegant O(1) constant-time formula for the digital root, based on modular arithmetic: for inputNumber &gt; 0, the digital root equals 1 + (inputNumber - 1) % 9. This is a fun fact worth mentioning after presenting the iterative solution above, but the iterative version is what most interviewers are actually looking for, since it demonstrates the digit-extraction technique.</div>
+<p class="complexity"><strong>Complexity: O(log n) per digit-summing pass, and the number of passes needed is small in practice (at most a small constant number of iterations for any realistic input size) — effectively O(log n) overall.</strong></p>
+<h1 id="sorting-searching-recursion-1">Sorting, Searching &amp; Recursion</h1>
+<p class="question"><strong>Q6. Implement counting sort.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/sort-colors/" target="_blank" rel="noopener">Related: Sort Colors &#8599;</a></span></p>
+<p>Problem: Sort an array of non-negative integers using counting sort — an efficient, non-comparison-based sorting algorithm that works well when the range of possible values is small relative to the number of elements.</p>
+<p>Approach: Counting sort works by counting how many times each distinct value appears, then using those counts to place each value directly into its correct position in the output — never comparing two elements against each other, which is what lets it beat the O(n log n) lower bound that applies to comparison-based sorts.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">CountingSort</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span>[] countingSort(<span class="k">int</span>[] inputValues) {
+        <span class="k">if</span> (inputValues.length == <span class="n">0</span>) {
+            <span class="k">return</span> inputValues;
+        }
+ 
+        <span class="k">int</span> maxValue = java.util.<span class="t">Arrays</span>.stream(inputValues).max().getAsInt();
+ 
+        <span class="c">// countOfValue[v] will hold how many times value v appears in the input</span>
+        <span class="k">int</span>[] countOfValue = <span class="k">new</span> <span class="k">int</span>[maxValue + <span class="n">1</span>];
+        <span class="k">for</span> (<span class="k">int</span> value : inputValues) {
+            countOfValue[value]++;
+        }
+ 
+        <span class="c">// convert counts into a running total, so countOfValue[v] becomes</span>
+        <span class="c">// &quot;how many values are &lt;= v&quot; -- this tells us the correct output position</span>
+        <span class="k">for</span> (<span class="k">int</span> value = <span class="n">1</span>; value &lt;= maxValue; value++) {
+            countOfValue[value] += countOfValue[value - <span class="n">1</span>];
+        }
+ 
+        <span class="k">int</span>[] sortedResult = <span class="k">new</span> <span class="k">int</span>[inputValues.length];
+        <span class="c">// walk the input backward to keep the sort stable (equal elements keep their relative order)</span>
+        <span class="k">for</span> (<span class="k">int</span> i = inputValues.length - <span class="n">1</span>; i &gt;= <span class="n">0</span>; i--) {
+            <span class="k">int</span> currentValue = inputValues[i];
+            <span class="k">int</span> outputPosition = countOfValue[currentValue] - <span class="n">1</span>;
+            sortedResult[outputPosition] = currentValue;
+            countOfValue[currentValue]--;
+        }
+        <span class="k">return</span> sortedResult;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] args) {
+        <span class="k">int</span>[] unsorted = {<span class="n">4</span>, <span class="n">2</span>, <span class="n">2</span>, <span class="n">8</span>, <span class="n">3</span>, <span class="n">3</span>, <span class="n">1</span>};
+        <span class="k">int</span>[] sorted = countingSort(unsorted);
+        <span class="t">System</span>.out.println(java.util.<span class="t">Arrays</span>.toString(sorted)); <span class="c">// [1, 2, 2, 3, 3, 4, 8]</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n + k) time and space, where n is the number of elements and k is the range of input values (maxValue + 1). This beats the O(n log n) lower bound of comparison-based sorts, but only pays off when k is not significantly larger than n — for a huge value range with relatively few elements, a comparison sort (or radix sort) is a better fit.</strong></p>
+<h1 id="linked-lists-data-structure-design-2">Linked Lists &amp; Data Structure Design</h1>
+<p class="question"><strong>Q7. What are the differences between an Array and an ArrayList in Java?</strong></p>
+<p>This is a conceptual question rather than a coding one:</p>
+<ul><li>Size — an array has a fixed size, set at creation and never changeable. ArrayList grows and shrinks dynamically as elements are added or removed.</li><li>Type — an array can hold primitives directly (int[], double[]) as well as objects. ArrayList can only hold objects (autoboxing handles primitives transparently, e.g. ArrayList&lt;Integer&gt;, but under the hood every element is still a boxed object).</li><li>API — an array offers minimal built-in functionality (just length and index access via []). ArrayList (as part of the Collections Framework) offers a rich API: add(), remove(), contains(), indexOf(), and interoperability with the rest of java.util.</li><li>Performance — a raw array has marginally less overhead than an ArrayList for simple index-based access, since ArrayList carries some object overhead and (for boxed primitives) autoboxing cost. In most applications this difference is negligible compared to the flexibility ArrayList provides.</li><li>Multi-dimensionality — arrays support true multi-dimensional forms directly (int[][]), whereas the equivalent with ArrayList requires nesting (ArrayList&lt;ArrayList&lt;Integer&gt;&gt;), which is less memory-efficient and more verbose.</li></ul>
+<p>Rule of thumb: use a plain array when the size is fixed and known up front and you need maximum raw performance (or need primitives without boxing overhead); use ArrayList (or another List implementation) for essentially everything else, since the flexibility and rich API usually outweigh the small performance difference.</p>
+<p class="question"><strong>Q8. If you were designing a phone directory (contact list), what data structure would you use, and why?</strong></p>
+<p>This is a design/reasoning question with no single correct answer — the interviewer wants to see how you weigh tradeoffs based on the required operations. A reasonable answer walks through the actual access patterns:</p>
+<ul><li>If the dominant operation is looking up a contact by name (or phone number) — a HashMap&lt;String, Contact&gt; keyed by name (or normalized phone number) gives O(1) average-case lookup, insertion, and deletion.</li><li>If the dominant operation is displaying contacts in alphabetical order (e.g. an address-book-style UI) — a TreeMap&lt;String, Contact&gt; keeps entries continuously sorted by key at the cost of O(log n) operations instead of O(1), trading a bit of raw speed for always-available ordering.</li><li>If you need BOTH fast lookup AND to occasionally display a sorted view — keep a HashMap as the primary store for O(1) lookups, and sort a snapshot (via Collections.sort() or a stream) only when a sorted view is actually needed for display, rather than paying the TreeMap ordering cost on every single insert (this mirrors the HashMap-vs-TreeMap tradeoff discussion in Part 3).</li><li>If contacts need to support prefix search (e.g. &quot;show all contacts starting with &#x27;Sm&#x27;&quot; as the user types) — a Trie (prefix tree) is the specialized structure built exactly for this, offering efficient prefix lookups that a HashMap or TreeMap can&#x27;t provide directly.</li></ul>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">Contact</span> {
+    <span class="k">private</span> <span class="t">String</span> contactName;
+    <span class="k">private</span> <span class="t">String</span> phoneNumber;
+    <span class="c">// constructor, getters, equals/hashCode omitted for brevity</span>
+}
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">PhoneDirectory</span> {
+    <span class="c">// O(1) average lookup by name -- good default choice for a general-purpose directory</span>
+    <span class="k">private</span> <span class="k">final</span> <span class="t">Map</span>&lt;<span class="t">String</span>, <span class="t">Contact</span>&gt; contactsByName = <span class="k">new</span> <span class="t">HashMap</span>&lt;&gt;();
+ 
+    <span class="k">public</span> <span class="k">void</span> addContact(<span class="t">Contact</span> contact) {
+        contactsByName.put(contact.getContactName(), contact);
+    }
+ 
+    <span class="k">public</span> <span class="t">Contact</span> findByName(<span class="t">String</span> contactName) {
+        <span class="k">return</span> contactsByName.get(contactName);
+    }
+ 
+    <span class="c">// sort only when actually needed for display, rather than maintaining</span>
+    <span class="c">// sorted order continuously</span>
+    <span class="k">public</span> <span class="t">List</span>&lt;<span class="t">Contact</span>&gt; getContactsSortedByName() {
+        <span class="t">List</span>&lt;<span class="t">Contact</span>&gt; sortedContacts = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;(contactsByName.values());
+        sortedContacts.sort(<span class="t">Comparator</span>.comparing(<span class="t">Contact</span>::getContactName));
+        <span class="k">return</span> sortedContacts;
+    }
+}</code></pre>
+<h1 id="object-oriented-design-elevator-system-3">Object-Oriented Design: Elevator System</h1>
+<p class="question"><strong>Q9. Design an elevator system. What classes would you create, and how would they interact?</strong></p>
+<p>Problem: This is a classic OOP system-design exercise. The interviewer is evaluating how you decompose a real-world system into classes with clear responsibilities, not looking for one specific &quot;correct&quot; answer. A good response identifies the core entities, their state, their behavior, and how they collaborate.</p>
+<h2 id="core-entities-4">Core entities</h2>
+<ul><li>Elevator — represents a single elevator car. Tracks its current floor, direction of travel (up/down/idle), and the set of floors it has been requested to stop at.</li><li>ElevatorController (or ElevatorSystem) — coordinates multiple Elevator instances, deciding which elevator should respond to a given request (e.g. the nearest one already moving in the right direction).</li><li>Request — represents a single call: either an external hall call (a person on floor N pressing &#x27;up&#x27; or &#x27;down&#x27;) or an internal car call (a passenger inside the elevator pressing a destination floor button).</li><li>Door — represents the elevator&#x27;s door state (open/closed) and behavior (open, close, with appropriate safety checks like obstruction detection).</li><li>Direction — an enum (UP, DOWN, IDLE) used by both Elevator and Request to express travel direction.</li></ul>
+<h2 id="a-minimal-class-sketch-4">A minimal class sketch</h2>
+<pre><code><span class="k">public</span> <span class="k">enum</span> <span class="t">Direction</span> {
+    <span class="t">UP</span>, <span class="t">DOWN</span>, <span class="t">IDLE</span>
+}
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">Request</span> {
+    <span class="k">private</span> <span class="k">final</span> <span class="k">int</span> requestedFloor;
+    <span class="k">private</span> <span class="k">final</span> <span class="t">Direction</span> requestedDirection; <span class="c">// null for internal car-button requests</span>
+ 
+    <span class="k">public</span> <span class="t">Request</span>(<span class="k">int</span> requestedFloor, <span class="t">Direction</span> requestedDirection) {
+        <span class="k">this</span>.requestedFloor = requestedFloor;
+        <span class="k">this</span>.requestedDirection = requestedDirection;
+    }
+ 
+    <span class="k">public</span> <span class="k">int</span> getRequestedFloor() {
+        <span class="k">return</span> requestedFloor;
+    }
+ 
+    <span class="k">public</span> <span class="t">Direction</span> getRequestedDirection() {
+        <span class="k">return</span> requestedDirection;
+    }
+}</code></pre>
+<pre><code><span class="k">import</span> java.util.<span class="t">TreeSet</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">Elevator</span> {
+    <span class="k">private</span> <span class="k">final</span> <span class="k">int</span> elevatorId;
+    <span class="k">private</span> <span class="k">int</span> currentFloor;
+    <span class="k">private</span> <span class="t">Direction</span> currentDirection = <span class="t">Direction</span>.<span class="t">IDLE</span>;
+ 
+    <span class="c">// sorted set of floors this elevator still needs to visit, so the</span>
+    <span class="c">// nearest pending stop is always easy to find</span>
+    <span class="k">private</span> <span class="k">final</span> <span class="t">TreeSet</span>&lt;<span class="t">Integer</span>&gt; pendingStops = <span class="k">new</span> <span class="t">TreeSet</span>&lt;&gt;();
+ 
+    <span class="k">public</span> <span class="t">Elevator</span>(<span class="k">int</span> elevatorId, <span class="k">int</span> startingFloor) {
+        <span class="k">this</span>.elevatorId = elevatorId;
+        <span class="k">this</span>.currentFloor = startingFloor;
+    }
+ 
+    <span class="k">public</span> <span class="k">void</span> addStop(<span class="k">int</span> floor) {
+        pendingStops.add(floor);
+        updateDirection();
+    }
+ 
+    <span class="k">private</span> <span class="k">void</span> updateDirection() {
+        <span class="k">if</span> (pendingStops.isEmpty()) {
+            currentDirection = <span class="t">Direction</span>.<span class="t">IDLE</span>;
+        } <span class="k">else</span> <span class="k">if</span> (pendingStops.first() &lt; currentFloor) {
+            currentDirection = <span class="t">Direction</span>.<span class="t">DOWN</span>;
+        } <span class="k">else</span> <span class="k">if</span> (pendingStops.last() &gt; currentFloor) {
+            currentDirection = <span class="t">Direction</span>.<span class="t">UP</span>;
+        }
+    }
+ 
+    <span class="k">public</span> <span class="k">void</span> moveOneStep() {
+        <span class="k">if</span> (currentDirection == <span class="t">Direction</span>.<span class="t">UP</span>) {
+            currentFloor++;
+        } <span class="k">else</span> <span class="k">if</span> (currentDirection == <span class="t">Direction</span>.<span class="t">DOWN</span>) {
+            currentFloor--;
+        }
+        <span class="k">if</span> (pendingStops.contains(currentFloor)) {
+            pendingStops.remove(currentFloor); <span class="c">// arrived -- open doors, etc.</span>
+        }
+        updateDirection();
+    }
+ 
+    <span class="k">public</span> <span class="k">int</span> getCurrentFloor() {
+        <span class="k">return</span> currentFloor;
+    }
+ 
+    <span class="k">public</span> <span class="t">Direction</span> getCurrentDirection() {
+        <span class="k">return</span> currentDirection;
+    }
+ 
+    <span class="k">public</span> <span class="k">int</span> getElevatorId() {
+        <span class="k">return</span> elevatorId;
+    }
+}</code></pre>
+<pre><code><span class="k">import</span> java.util.<span class="t">List</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">ElevatorController</span> {
+    <span class="k">private</span> <span class="k">final</span> <span class="t">List</span>&lt;<span class="t">Elevator</span>&gt; managedElevators;
+ 
+    <span class="k">public</span> <span class="t">ElevatorController</span>(<span class="t">List</span>&lt;<span class="t">Elevator</span>&gt; managedElevators) {
+        <span class="k">this</span>.managedElevators = managedElevators;
+    }
+ 
+    <span class="c">// simple &quot;nearest available elevator&quot; dispatch strategy</span>
+    <span class="k">public</span> <span class="t">Elevator</span> handleRequest(<span class="t">Request</span> incomingRequest) {
+        <span class="t">Elevator</span> bestElevator = <span class="k">null</span>;
+        <span class="k">int</span> shortestDistance = <span class="t">Integer</span>.<span class="t">MAX_VALUE</span>;
+ 
+        <span class="k">for</span> (<span class="t">Elevator</span> candidate : managedElevators) {
+            <span class="k">int</span> distance = <span class="t">Math</span>.abs(candidate.getCurrentFloor() - incomingRequest.getRequestedFloor());
+ 
+            <span class="c">// prefer an idle elevator, or one already moving toward the request</span>
+            <span class="k">boolean</span> isSuitable = candidate.getCurrentDirection() == <span class="t">Direction</span>.<span class="t">IDLE</span>
+                    || candidate.getCurrentDirection() == incomingRequest.getRequestedDirection();
+ 
+            <span class="k">if</span> (isSuitable &amp;&amp; distance &lt; shortestDistance) {
+                shortestDistance = distance;
+                bestElevator = candidate;
+            }
+        }
+ 
+        <span class="k">if</span> (bestElevator != <span class="k">null</span>) {
+            bestElevator.addStop(incomingRequest.getRequestedFloor());
+        }
+        <span class="k">return</span> bestElevator;
+    }
+}</code></pre>
+<h2 id="points-worth-discussing-out-loud-in-the-interview-4">Points worth discussing out loud in the interview</h2>
+<ul><li>Dispatch strategy is the interesting algorithmic core of this problem — the simple &quot;nearest suitable elevator&quot; strategy shown above is a reasonable starting point, but real systems use more sophisticated algorithms (e.g. minimizing average wait time across all pending requests, or the classic SCAN/LOOK disk-scheduling-style algorithms, which elevator systems are named after).</li><li>Concurrency matters in a real implementation: multiple hall-call buttons could be pressed simultaneously by different people, and the elevators themselves move independently — this naturally maps onto a design with each Elevator potentially running on (or being controlled by) its own thread, with the ElevatorController needing thread-safe request handling.</li><li>Extensibility: keeping Direction as its own type, and Request decoupled from Elevator, makes it straightforward to later add features like priority requests (e.g. a fire-emergency override), express elevators that skip certain floors, or capacity limits — without having to restructure the core classes.</li><li>This question is really testing class decomposition and clear separation of responsibilities more than any single &quot;correct&quot; algorithm — an interviewer will often follow up by asking you to extend the design (e.g. &quot;now add support for a weight limit&quot;) to see how cleanly your structure accommodates change.</li></ul>
+<h1 id="string-handling-conceptual-questions-4">String Handling: Conceptual Questions</h1>
+<p class="question"><strong>Q10. What is the difference between String, StringBuilder, and StringBuffer?</strong></p>
+<p>All three represent sequences of characters, but they differ fundamentally in mutability and thread-safety:</p>
+<ul><li>String — immutable (see Part 1). Every &quot;modification&quot; (concatenation, substring, etc.) actually creates a brand new String object, leaving the original unchanged. This makes String inherently thread-safe (no mutable state to corrupt), and safe to share and cache (e.g. the String pool), but potentially expensive if you&#x27;re building up a string through many small modifications in a loop, since each one allocates a new object.</li><li>StringBuilder — mutable, and NOT thread-safe (no internal synchronization). This makes it the right choice for building up or modifying a string within a single thread — for example, inside a loop that appends many pieces together — since it can grow an internal buffer in place rather than allocating a new object on every change.</li><li>StringBuffer — mutable, functionally almost identical to StringBuilder, but every method is synchronized, making it safe to share across multiple threads. This synchronization overhead makes StringBuffer measurably slower than StringBuilder in the (very common) single-threaded case.</li></ul>
+<pre><code><span class="c">// Inefficient: creates a new String object on every iteration (n concatenations = n new objects)</span>
+<span class="t">String</span> inefficientResult = <span class="s">&quot;&quot;</span>;
+<span class="k">for</span> (<span class="k">int</span> i = <span class="n">0</span>; i &lt; <span class="n">1000</span>; i++) {
+    inefficientResult += i; <span class="c">// creates a brand new String each time</span>
+}
+ 
+<span class="c">// Efficient: StringBuilder mutates its internal buffer in place</span>
+<span class="t">StringBuilder</span> efficientResult = <span class="k">new</span> <span class="t">StringBuilder</span>();
+<span class="k">for</span> (<span class="k">int</span> i = <span class="n">0</span>; i &lt; <span class="n">1000</span>; i++) {
+    efficientResult.append(i);
+}
+<span class="t">String</span> finalResult = efficientResult.toString();</code></pre>
+<p>Practical guidance: default to StringBuilder for any single-threaded string-building work (which is the overwhelming majority of cases — even a method with purely local StringBuilder usage doesn&#x27;t need StringBuffer, since no other thread can see that local variable). Reach for StringBuffer only in the genuinely rare case where a single mutable string buffer must be shared and modified across multiple threads.</p>
+<p class="question"><strong>Q11. What is the difference between Hashtable, HashMap, and ConcurrentHashMap?</strong></p>
+<p>These represent an evolution of the same basic idea (a hash-based key-value map), with different thread-safety tradeoffs:</p>
+<ul><li>Hashtable — the original, legacy implementation (present since JDK 1.0). Thread-safe via coarse-grained synchronization: every single method is synchronized on the whole table, so only one thread can access the Hashtable at all (for read OR write) at any given moment. Does not permit null keys or null values.</li><li>HashMap — the modern general-purpose implementation (added in Java 1.2, as part of the Collections Framework). NOT thread-safe at all — concurrent unsynchronized access can corrupt internal state (see the discussion in Part 1). Faster than Hashtable in single-threaded use due to the lack of synchronization overhead. Permits one null key and multiple null values.</li><li>ConcurrentHashMap — added in Java 5 (java.util.concurrent) specifically to give HashMap-like functionality with GOOD concurrent performance, unlike Hashtable&#x27;s all-or-nothing single lock. It achieves this through fine-grained internal locking (or, in modern JDKs, largely lock-free operations via CAS), so multiple threads can read and write different parts of the map concurrently with minimal contention. Does not permit null keys or null values (this restriction exists specifically to avoid ambiguity in concurrent get() calls about whether a null result means &quot;absent&quot; or &quot;present with a null value&quot;).</li></ul>
+<p>Practical guidance: never use Hashtable in new code — it&#x27;s a legacy holdover with no advantage over the alternatives. Use plain HashMap for single-threaded (or externally-synchronized, if truly necessary) access, and ConcurrentHashMap whenever a map genuinely needs to be shared and modified by multiple threads.</p>
+<h1 id="dynamic-programming-decode-ways-5">Dynamic Programming: Decode Ways</h1>
+<p class="question"><strong>Q12. How many ways can a string of digits be decoded into letters, given A=1, B=2, ..., Z=26?</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/decode-ways/" target="_blank" rel="noopener">Decode Ways &#8599;</a></span></p>
+<p>Problem: A message containing letters A-Z can be encoded into numbers using the mapping &#x27;A&#x27; -&gt; &quot;1&quot;, &#x27;B&#x27; -&gt; &quot;2&quot;, ..., &#x27;Z&#x27; -&gt; &quot;26&quot;. Given a string of digits, determine how many different ways it can be decoded back into letters. Example: &quot;12&quot; can decode as &quot;AB&quot; (1, 2) or &quot;L&quot; (12), so the answer is 2. &quot;226&quot; can decode as &quot;BZ&quot; (2, 26), &quot;VF&quot; (22, 6), or &quot;BBF&quot; (2, 2, 6), so the answer is 3.</p>
+<p>Approach: This is a classic 1D dynamic programming problem (see Part 3&#x27;s DP pattern). At each position in the string, you have up to two choices: decode the current single digit as one letter (valid only if it&#x27;s not &#x27;0&#x27;), or decode the current digit together with the previous one as a two-digit letter (valid only if that two-digit number is between 10 and 26). The number of ways to decode up to position i depends only on the number of ways to decode up to positions i-1 and i-2 — a textbook DP recurrence.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">DecodeWays</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> countDecodings(<span class="t">String</span> digitString) {
+        <span class="k">if</span> (digitString == <span class="k">null</span> || digitString.isEmpty() || digitString.charAt(<span class="n">0</span>) == <span class="s">&#x27;0&#x27;</span>) {
+            <span class="k">return</span> <span class="n">0</span>; <span class="c">// a leading zero can never be validly decoded</span>
+        }
+ 
+        <span class="k">int</span> stringLength = digitString.length();
+        <span class="c">// waysToDecode[i] = number of ways to decode the first i characters</span>
+        <span class="k">int</span>[] waysToDecode = <span class="k">new</span> <span class="k">int</span>[stringLength + <span class="n">1</span>];
+        waysToDecode[<span class="n">0</span>] = <span class="n">1</span>; <span class="c">// one way to decode an empty prefix: decode nothing</span>
+        waysToDecode[<span class="n">1</span>] = <span class="n">1</span>; <span class="c">// already validated the first character isn&#x27;t &#x27;0&#x27; above</span>
+ 
+        <span class="k">for</span> (<span class="k">int</span> position = <span class="n">2</span>; position &lt;= stringLength; position++) {
+            <span class="k">char</span> currentDigit = digitString.charAt(position - <span class="n">1</span>);
+            <span class="k">char</span> previousDigit = digitString.charAt(position - <span class="n">2</span>);
+ 
+            <span class="c">// option 1: decode the current character alone, as a single-digit letter (1-9)</span>
+            <span class="k">if</span> (currentDigit != <span class="s">&#x27;0&#x27;</span>) {
+                waysToDecode[position] += waysToDecode[position - <span class="n">1</span>];
+            }
+ 
+            <span class="c">// option 2: decode the previous and current characters together, as a two-digit letter (10-26)</span>
+            <span class="k">int</span> twoDigitValue = (previousDigit - <span class="s">&#x27;0&#x27;</span>) * <span class="n">10</span> + (currentDigit - <span class="s">&#x27;0&#x27;</span>);
+            <span class="k">if</span> (twoDigitValue &gt;= <span class="n">10</span> &amp;&amp; twoDigitValue &lt;= <span class="n">26</span>) {
+                waysToDecode[position] += waysToDecode[position - <span class="n">2</span>];
+            }
+        }
+ 
+        <span class="k">return</span> waysToDecode[stringLength];
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] args) {
+        <span class="t">System</span>.out.println(countDecodings(<span class="s">&quot;12&quot;</span>));  <span class="c">// 2  (&quot;AB&quot; or &quot;L&quot;)</span>
+        <span class="t">System</span>.out.println(countDecodings(<span class="s">&quot;226&quot;</span>)); <span class="c">// 3  (&quot;BZ&quot;, &quot;VF&quot;, &quot;BBF&quot;)</span>
+        <span class="t">System</span>.out.println(countDecodings(<span class="s">&quot;06&quot;</span>));  <span class="c">// 0  (leading zero is never valid)</span>
+        <span class="t">System</span>.out.println(countDecodings(<span class="s">&quot;10&quot;</span>));  <span class="c">// 1  (&quot;J&quot; only -- &quot;1&quot; then &quot;0&quot; is invalid alone)</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time (a single pass through the string), O(n) space for the waysToDecode array (which can be optimized down to O(1) space, since each step only ever looks back at the two immediately preceding values).</strong></p><div class="pager"><span><a href="07-stacks-queues-hashmap-design.html">&larr; Stacks, Queues, HashMap &amp; Design</a></span><span><a href="09-leetcode-patterns.html">20 Coding Interview Patterns &rarr;</a></span></div></main></div></body></html>

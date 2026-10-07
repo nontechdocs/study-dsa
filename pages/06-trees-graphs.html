@@ -1,0 +1,626 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Trees &amp; Graphs</title><link rel="stylesheet" href="../assets/style.css"></head><body>
+<header class="top"><a href="../index.html">&#8962; Index</a><span class="sp"></span><strong>Trees &amp; Graphs</strong></header>
+<div class="layout"><nav class="toc"><a href="#tree-traversal-0">Tree Traversal</a><a href="#binary-search-trees-construction-modification-1">Binary Search Trees: Construction &amp; Modification</a><a href="#binary-search-tree-validation-comparison-2">Binary Search Tree Validation &amp; Comparison</a><a href="#tree-paths-value-transformation-3">Tree Paths &amp; Value Transformation</a><a href="#graph-search-dfs-bfs-number-of-islands-4">Graph Search: DFS, BFS &amp; Number of Islands</a></nav><main><h1 class="title">Java Programming Interview Questions — Document 5</h1><p class="sub">Trees &amp;amp; Graphs</p><p>This document covers all the tree and graph coding questions from the supplied question list: tree traversals (including zigzag and spiral order), Binary Search Tree operations (insert, delete, validate, build from a sorted array or from traversal arrays), tree comparison, path problems, and graph search (DFS/BFS) including the Number of Islands problem.</p>
+<p>This is Document 5 of a multi-document set covering all 158 questions from the original spreadsheet. Several near-duplicate questions from the original list (BST validation was asked three times; tree traversal and DFS/graph search were each asked twice) have been consolidated into a single, thorough answer.</p>
+<p><strong>Shared node definition used throughout this document:</strong></p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">TreeNode</span> {
+    <span class="k">int</span> nodeValue;
+    <span class="t">TreeNode</span> leftChild;
+    <span class="t">TreeNode</span> rightChild;
+ 
+    <span class="t">TreeNode</span>(<span class="k">int</span> nodeValue) {
+        <span class="k">this</span>.nodeValue = nodeValue;
+    }
+}</code></pre>
+<h1 id="tree-traversal-0">Tree Traversal</h1>
+<p class="question"><strong>Q1. Binary tree traversal. (Asked twice in the original list, once generically and once specifically for binary trees.)</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/binary-tree-inorder-traversal/" target="_blank" rel="noopener">Related: Binary Tree Inorder Traversal &#8599;</a></span></p>
+<p class="problem">Problem statement: Given the root of a binary tree, visit every node using each of the standard traversal orders: pre-order (node, then left, then right), in-order (left, then node, then right), post-order (left, then right, then node), and level-order (breadth-first, level by level).</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">ArrayList</span>;
+<span class="k">import</span> java.util.<span class="t">LinkedList</span>;
+<span class="k">import</span> java.util.<span class="t">List</span>;
+<span class="k">import</span> java.util.<span class="t">Queue</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">BinaryTreeTraverser</span> {
+ 
+    <span class="c">// Pre-order: process the node BEFORE its children</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> traversePreOrder(<span class="t">TreeNode</span> currentNode, <span class="t">List</span>&lt;<span class="t">Integer</span>&gt; resultList) {
+        <span class="k">if</span> (currentNode == <span class="k">null</span>) {
+            <span class="k">return</span>;
+        }
+        resultList.add(currentNode.nodeValue);          <span class="c">// visit the node first</span>
+        traversePreOrder(currentNode.leftChild, resultList);
+        traversePreOrder(currentNode.rightChild, resultList);
+    }
+ 
+    <span class="c">// In-order: process the node BETWEEN its children (produces sorted</span>
+    <span class="c">// order for a valid Binary Search Tree)</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> traverseInOrder(<span class="t">TreeNode</span> currentNode, <span class="t">List</span>&lt;<span class="t">Integer</span>&gt; resultList) {
+        <span class="k">if</span> (currentNode == <span class="k">null</span>) {
+            <span class="k">return</span>;
+        }
+        traverseInOrder(currentNode.leftChild, resultList);
+        resultList.add(currentNode.nodeValue);            <span class="c">// visit the node between children</span>
+        traverseInOrder(currentNode.rightChild, resultList);
+    }
+ 
+    <span class="c">// Post-order: process the node AFTER both children</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> traversePostOrder(<span class="t">TreeNode</span> currentNode, <span class="t">List</span>&lt;<span class="t">Integer</span>&gt; resultList) {
+        <span class="k">if</span> (currentNode == <span class="k">null</span>) {
+            <span class="k">return</span>;
+        }
+        traversePostOrder(currentNode.leftChild, resultList);
+        traversePostOrder(currentNode.rightChild, resultList);
+        resultList.add(currentNode.nodeValue);             <span class="c">// visit the node last</span>
+    }
+ 
+    <span class="c">// Level-order (breadth-first): visits all nodes at depth 0, then depth 1, etc.</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="t">List</span>&lt;<span class="t">Integer</span>&gt; traverseLevelOrder(<span class="t">TreeNode</span> rootNode) {
+        <span class="t">List</span>&lt;<span class="t">Integer</span>&gt; resultList = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
+        <span class="k">if</span> (rootNode == <span class="k">null</span>) {
+            <span class="k">return</span> resultList;
+        }
+        <span class="t">Queue</span>&lt;<span class="t">TreeNode</span>&gt; nodesToVisit = <span class="k">new</span> <span class="t">LinkedList</span>&lt;&gt;();
+        nodesToVisit.offer(rootNode);
+ 
+        <span class="k">while</span> (!nodesToVisit.isEmpty()) {
+            <span class="t">TreeNode</span> currentNode = nodesToVisit.poll();
+            resultList.add(currentNode.nodeValue);
+            <span class="k">if</span> (currentNode.leftChild != <span class="k">null</span>) nodesToVisit.offer(currentNode.leftChild);
+            <span class="k">if</span> (currentNode.rightChild != <span class="k">null</span>) nodesToVisit.offer(currentNode.rightChild);
+        }
+        <span class="k">return</span> resultList;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">TreeNode</span> rootNode = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">4</span>);
+        rootNode.leftChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">2</span>);
+        rootNode.rightChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">6</span>);
+        rootNode.leftChild.leftChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">1</span>);
+        rootNode.leftChild.rightChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">3</span>);
+ 
+        <span class="t">List</span>&lt;<span class="t">Integer</span>&gt; preOrderResult = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
+        traversePreOrder(rootNode, preOrderResult);
+        <span class="t">System</span>.out.println(<span class="s">&quot;Pre-order: &quot;</span> + preOrderResult);   <span class="c">// [4, 2, 1, 3, 6]</span>
+ 
+        <span class="t">List</span>&lt;<span class="t">Integer</span>&gt; inOrderResult = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
+        traverseInOrder(rootNode, inOrderResult);
+        <span class="t">System</span>.out.println(<span class="s">&quot;In-order: &quot;</span> + inOrderResult);     <span class="c">// [1, 2, 3, 4, 6]</span>
+ 
+        <span class="t">System</span>.out.println(<span class="s">&quot;Level-order: &quot;</span> + traverseLevelOrder(rootNode)); <span class="c">// [4, 2, 6, 1, 3]</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time for every traversal style, since each visits every node exactly once. O(h) extra space for the recursive traversals (where h is the tree&#x27;s height, due to call-stack depth), and O(w) extra space for level-order traversal (where w is the tree&#x27;s maximum width, due to the queue).</strong></p>
+<p class="question"><strong>Q2. Print a binary tree in spiral order.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/binary-tree-zigzag-level-order-traversal/" target="_blank" rel="noopener">Related: Binary Tree Zigzag Level Order Traversal &#8599;</a></span></p>
+<p class="problem">Problem statement: Given the root of a binary tree, print its nodes in SPIRAL (zigzag) order: the first level left-to-right, the second level right-to-left, the third level left-to-right again, and so on, alternating direction at every level.</p>
+<p>Approach: use TWO stacks. One stack holds the nodes of the CURRENT level to be printed in left-to-right order; the other collects the NEXT level&#x27;s nodes so that, when it becomes the current stack, its nodes naturally come out in right-to-left order (since a stack reverses the order of insertion).</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">ArrayDeque</span>;
+<span class="k">import</span> java.util.<span class="t">ArrayList</span>;
+<span class="k">import</span> java.util.<span class="t">Deque</span>;
+<span class="k">import</span> java.util.<span class="t">List</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">SpiralOrderTraverser</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="t">List</span>&lt;<span class="t">Integer</span>&gt; traverseInSpiralOrder(<span class="t">TreeNode</span> rootNode) {
+        <span class="t">List</span>&lt;<span class="t">Integer</span>&gt; resultList = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
+        <span class="k">if</span> (rootNode == <span class="k">null</span>) {
+            <span class="k">return</span> resultList;
+        }
+ 
+        <span class="t">Deque</span>&lt;<span class="t">TreeNode</span>&gt; currentLevelStack = <span class="k">new</span> <span class="t">ArrayDeque</span>&lt;&gt;();
+        <span class="t">Deque</span>&lt;<span class="t">TreeNode</span>&gt; nextLevelStack = <span class="k">new</span> <span class="t">ArrayDeque</span>&lt;&gt;();
+        currentLevelStack.push(rootNode);
+        <span class="k">boolean</span> isLeftToRightDirection = <span class="k">true</span>;
+ 
+        <span class="k">while</span> (!currentLevelStack.isEmpty()) {
+            <span class="t">TreeNode</span> currentNode = currentLevelStack.pop();
+            resultList.add(currentNode.nodeValue);
+ 
+            <span class="k">if</span> (isLeftToRightDirection) {
+                <span class="c">// push left child before right child, so popping later</span>
+                <span class="c">// (in the NEXT level&#x27;s stack) processes right-to-left</span>
+                <span class="k">if</span> (currentNode.leftChild != <span class="k">null</span>) nextLevelStack.push(currentNode.leftChild);
+                <span class="k">if</span> (currentNode.rightChild != <span class="k">null</span>) nextLevelStack.push(currentNode.rightChild);
+            } <span class="k">else</span> {
+                <span class="c">// push right child before left child, reversing the order</span>
+                <span class="c">// for the FOLLOWING level</span>
+                <span class="k">if</span> (currentNode.rightChild != <span class="k">null</span>) nextLevelStack.push(currentNode.rightChild);
+                <span class="k">if</span> (currentNode.leftChild != <span class="k">null</span>) nextLevelStack.push(currentNode.leftChild);
+            }
+ 
+            <span class="k">if</span> (currentLevelStack.isEmpty()) {
+                <span class="c">// this level is fully processed -- swap in the next level&#x27;s stack</span>
+                <span class="t">Deque</span>&lt;<span class="t">TreeNode</span>&gt; temporaryStack = currentLevelStack;
+                currentLevelStack = nextLevelStack;
+                nextLevelStack = temporaryStack;
+                isLeftToRightDirection = !isLeftToRightDirection; <span class="c">// flip direction</span>
+            }
+        }
+        <span class="k">return</span> resultList;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">TreeNode</span> rootNode = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">1</span>);
+        rootNode.leftChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">2</span>);
+        rootNode.rightChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">3</span>);
+        rootNode.leftChild.leftChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">4</span>);
+        rootNode.leftChild.rightChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">5</span>);
+        rootNode.rightChild.leftChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">6</span>);
+        rootNode.rightChild.rightChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">7</span>);
+ 
+        <span class="t">System</span>.out.println(traverseInSpiralOrder(rootNode));
+        <span class="c">// [1, 3, 2, 4, 5, 6, 7]</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time, O(w) extra space, where w is the tree&#x27;s maximum width (the largest number of nodes at any single level).</strong></p>
+<p class="question"><strong>Q3. Binary tree zigzag traversal. (LeetCode.)</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/binary-tree-zigzag-level-order-traversal/" target="_blank" rel="noopener">Binary Tree Zigzag Level Order Traversal &#8599;</a></span></p>
+<p class="problem">Problem statement: This is the same underlying problem as spiral order traversal above, but LeetCode&#x27;s specific version asks for the result GROUPED BY LEVEL (a List of Lists), rather than a single flat list.</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">ArrayList</span>;
+<span class="k">import</span> java.util.<span class="t">LinkedList</span>;
+<span class="k">import</span> java.util.<span class="t">List</span>;
+<span class="k">import</span> java.util.<span class="t">Queue</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">ZigzagLevelOrderTraverser</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="t">List</span>&lt;<span class="t">List</span>&lt;<span class="t">Integer</span>&gt;&gt; traverseZigzagByLevel(<span class="t">TreeNode</span> rootNode) {
+        <span class="t">List</span>&lt;<span class="t">List</span>&lt;<span class="t">Integer</span>&gt;&gt; resultByLevel = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
+        <span class="k">if</span> (rootNode == <span class="k">null</span>) {
+            <span class="k">return</span> resultByLevel;
+        }
+ 
+        <span class="t">Queue</span>&lt;<span class="t">TreeNode</span>&gt; nodesToVisit = <span class="k">new</span> <span class="t">LinkedList</span>&lt;&gt;();
+        nodesToVisit.offer(rootNode);
+        <span class="k">boolean</span> isLeftToRightDirection = <span class="k">true</span>;
+ 
+        <span class="k">while</span> (!nodesToVisit.isEmpty()) {
+            <span class="k">int</span> nodesAtThisLevel = nodesToVisit.size();
+            <span class="t">List</span>&lt;<span class="t">Integer</span>&gt; currentLevelValues = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
+ 
+            <span class="k">for</span> (<span class="k">int</span> count = <span class="n">0</span>; count &lt; nodesAtThisLevel; count++) {
+                <span class="t">TreeNode</span> currentNode = nodesToVisit.poll();
+ 
+                <span class="c">// add to the front or back of the list, depending on direction --</span>
+                <span class="c">// this produces the zigzag effect without needing a separate reversal step</span>
+                <span class="k">if</span> (isLeftToRightDirection) {
+                    currentLevelValues.add(currentNode.nodeValue);
+                } <span class="k">else</span> {
+                    currentLevelValues.add(<span class="n">0</span>, currentNode.nodeValue);
+                }
+ 
+                <span class="k">if</span> (currentNode.leftChild != <span class="k">null</span>) nodesToVisit.offer(currentNode.leftChild);
+                <span class="k">if</span> (currentNode.rightChild != <span class="k">null</span>) nodesToVisit.offer(currentNode.rightChild);
+            }
+            resultByLevel.add(currentLevelValues);
+            isLeftToRightDirection = !isLeftToRightDirection;
+        }
+        <span class="k">return</span> resultByLevel;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">TreeNode</span> rootNode = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">3</span>);
+        rootNode.leftChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">9</span>);
+        rootNode.rightChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">20</span>);
+        rootNode.rightChild.leftChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">15</span>);
+        rootNode.rightChild.rightChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">7</span>);
+ 
+        <span class="t">System</span>.out.println(traverseZigzagByLevel(rootNode));
+        <span class="c">// [[3], [20, 9], [15, 7]]</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time, O(w) extra space, where w is the tree&#x27;s maximum width.</strong></p>
+<h1 id="binary-search-trees-construction-modification-1">Binary Search Trees: Construction &amp; Modification</h1>
+<p class="question"><strong>Q4. Explain how a binary search is done, and how a Binary Search Tree (BST) works.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/binary-search/" target="_blank" rel="noopener">Related: Binary Search &#8599;</a></span></p>
+<p class="problem">Problem statement: This is a conceptual question. A Binary Search Tree maintains the ordering invariant that, for every node, every value in its LEFT subtree is SMALLER than the node&#x27;s own value, and every value in its RIGHT subtree is LARGER. This invariant is what lets a search proceed exactly like binary search on a sorted array: at each node, compare the target value to the current node&#x27;s value, and move LEFT if the target is smaller, or RIGHT if the target is larger, discarding the other half of the tree at each step.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">BinarySearchTreeSearcher</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">boolean</span> containsValue(<span class="t">TreeNode</span> currentNode, <span class="k">int</span> targetValue) {
+        <span class="k">if</span> (currentNode == <span class="k">null</span>) {
+            <span class="k">return</span> <span class="k">false</span>; <span class="c">// reached a leaf&#x27;s empty child -- value not found</span>
+        }
+        <span class="k">if</span> (targetValue == currentNode.nodeValue) {
+            <span class="k">return</span> <span class="k">true</span>;
+        } <span class="k">else</span> <span class="k">if</span> (targetValue &lt; currentNode.nodeValue) {
+            <span class="k">return</span> containsValue(currentNode.leftChild, targetValue);  <span class="c">// search the left subtree</span>
+        } <span class="k">else</span> {
+            <span class="k">return</span> containsValue(currentNode.rightChild, targetValue); <span class="c">// search the right subtree</span>
+        }
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(h) time, where h is the tree&#x27;s height -- O(log n) for a balanced tree, but O(n) in the worst case for a completely unbalanced (&quot;degenerate,&quot; essentially linked-list-shaped) tree.</strong></p>
+<p class="question"><strong>Q5. Implement a Binary Search Tree, including insertion. (Asked multiple times in the original list.)</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/insert-into-a-binary-search-tree/" target="_blank" rel="noopener">Insert Into A Binary Search Tree &#8599;</a></span></p>
+<p class="problem">Problem statement: Implement a Binary Search Tree class supporting insertion of new values, maintaining the BST ordering invariant described above. Example: after inserting 5, 3, 7, 1, 4 (in that order), the tree should have 5 at the root, with 3 and 7 as its children, and 1 and 4 as children of 3.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">BinarySearchTree</span> {
+ 
+    <span class="k">private</span> <span class="t">TreeNode</span> rootNode;
+ 
+    <span class="k">public</span> <span class="k">void</span> insertValue(<span class="k">int</span> newValue) {
+        rootNode = insertValueRecursively(rootNode, newValue);
+    }
+ 
+    <span class="c">// Recursively finds the correct empty position for newValue, and returns</span>
+    <span class="c">// the (possibly newly-created) subtree rooted at currentNode</span>
+    <span class="k">private</span> <span class="t">TreeNode</span> insertValueRecursively(<span class="t">TreeNode</span> currentNode, <span class="k">int</span> newValue) {
+        <span class="k">if</span> (currentNode == <span class="k">null</span>) {
+            <span class="k">return</span> <span class="k">new</span> <span class="t">TreeNode</span>(newValue); <span class="c">// found the correct empty spot -- create the new node here</span>
+        }
+ 
+        <span class="k">if</span> (newValue &lt; currentNode.nodeValue) {
+            currentNode.leftChild = insertValueRecursively(currentNode.leftChild, newValue);
+        } <span class="k">else</span> <span class="k">if</span> (newValue &gt; currentNode.nodeValue) {
+            currentNode.rightChild = insertValueRecursively(currentNode.rightChild, newValue);
+        }
+        <span class="c">// if newValue already exists in the tree, do nothing (no duplicates)</span>
+ 
+        <span class="k">return</span> currentNode;
+    }
+ 
+    <span class="k">public</span> <span class="t">TreeNode</span> getRootNode() {
+        <span class="k">return</span> rootNode;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">BinarySearchTree</span> myTree = <span class="k">new</span> <span class="t">BinarySearchTree</span>();
+        <span class="k">int</span>[] valuesToInsert = {<span class="n">5</span>, <span class="n">3</span>, <span class="n">7</span>, <span class="n">1</span>, <span class="n">4</span>};
+        <span class="k">for</span> (<span class="k">int</span> currentValue : valuesToInsert) {
+            myTree.insertValue(currentValue);
+        }
+        <span class="c">// resulting tree:      5</span>
+        <span class="c">//                    /   \</span>
+        <span class="c">//                   3     7</span>
+        <span class="c">//                  / \</span>
+        <span class="c">//                 1   4</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(h) time per insertion, where h is the tree&#x27;s current height.</strong></p>
+<p class="question"><strong>Q6. Delete a node from a Binary Search Tree.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/delete-node-in-a-bst/" target="_blank" rel="noopener">Delete Node In A Bst &#8599;</a></span></p>
+<p class="problem">Problem statement: Given the root of a BST and a value to delete, remove the node with that value while PRESERVING the BST ordering invariant for all remaining nodes. This has three distinct cases: the node has no children (simply remove it), the node has exactly one child (replace it with that child), and the node has two children (the tricky case).</p>
+<p>Approach for the two-children case: replace the node&#x27;s value with its IN-ORDER SUCCESSOR (the smallest value in its right subtree -- found by going right once, then left as far as possible), then recursively delete that successor from the right subtree (where it is now guaranteed to have at most one child, since it was the smallest value in that subtree).</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">BinarySearchTreeDeleter</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="t">TreeNode</span> deleteValue(<span class="t">TreeNode</span> currentNode, <span class="k">int</span> targetValue) {
+        <span class="k">if</span> (currentNode == <span class="k">null</span>) {
+            <span class="k">return</span> <span class="k">null</span>; <span class="c">// value not found -- nothing to delete</span>
+        }
+ 
+        <span class="k">if</span> (targetValue &lt; currentNode.nodeValue) {
+            currentNode.leftChild = deleteValue(currentNode.leftChild, targetValue);
+        } <span class="k">else</span> <span class="k">if</span> (targetValue &gt; currentNode.nodeValue) {
+            currentNode.rightChild = deleteValue(currentNode.rightChild, targetValue);
+        } <span class="k">else</span> {
+            <span class="c">// found the node to delete -- handle its three possible shapes</span>
+ 
+            <span class="k">if</span> (currentNode.leftChild == <span class="k">null</span>) {
+                <span class="k">return</span> currentNode.rightChild; <span class="c">// no left child (0 or 1 children overall)</span>
+            } <span class="k">else</span> <span class="k">if</span> (currentNode.rightChild == <span class="k">null</span>) {
+                <span class="k">return</span> currentNode.leftChild;  <span class="c">// no right child (exactly 1 child)</span>
+            }
+ 
+            <span class="c">// two children: find the in-order successor (smallest value in</span>
+            <span class="c">// the right subtree), copy its value here, then delete IT instead</span>
+            <span class="t">TreeNode</span> inOrderSuccessor = findMinimumValueNode(currentNode.rightChild);
+            currentNode.nodeValue = inOrderSuccessor.nodeValue;
+            currentNode.rightChild = deleteValue(currentNode.rightChild, inOrderSuccessor.nodeValue);
+        }
+        <span class="k">return</span> currentNode;
+    }
+ 
+    <span class="k">private</span> <span class="k">static</span> <span class="t">TreeNode</span> findMinimumValueNode(<span class="t">TreeNode</span> currentNode) {
+        <span class="k">while</span> (currentNode.leftChild != <span class="k">null</span>) {
+            currentNode = currentNode.leftChild;
+        }
+        <span class="k">return</span> currentNode;
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(h) time, where h is the tree&#x27;s height.</strong></p>
+<p class="question"><strong>Q7. Create a Binary Search Tree from a sorted array.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/convert-sorted-array-to-binary-search-tree/" target="_blank" rel="noopener">Convert Sorted Array To Binary Search Tree &#8599;</a></span></p>
+<p class="problem">Problem statement: Given an array already sorted in ascending order, construct a HEIGHT-BALANCED Binary Search Tree containing those values. Example: buildBalancedBstFromSortedArray({1, 2, 3, 4, 5, 6, 7}) should produce a balanced tree with 4 at the root.</p>
+<p>Approach: always pick the MIDDLE element of the current array range as the subtree&#x27;s root -- this naturally keeps the left and right subtrees as close to equal in size as possible at every level, guaranteeing a balanced result.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">SortedArrayToBstBuilder</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="t">TreeNode</span> buildBalancedBstFromSortedArray(<span class="k">int</span>[] sortedArray) {
+        <span class="k">return</span> buildFromRange(sortedArray, <span class="n">0</span>, sortedArray.length - <span class="n">1</span>);
+    }
+ 
+    <span class="k">private</span> <span class="k">static</span> <span class="t">TreeNode</span> buildFromRange(<span class="k">int</span>[] sortedArray, <span class="k">int</span> startIndex, <span class="k">int</span> endIndex) {
+        <span class="k">if</span> (startIndex &gt; endIndex) {
+            <span class="k">return</span> <span class="k">null</span>; <span class="c">// empty range -- no subtree here</span>
+        }
+ 
+        <span class="k">int</span> middleIndex = startIndex + (endIndex - startIndex) / <span class="n">2</span>;
+        <span class="t">TreeNode</span> currentRootNode = <span class="k">new</span> <span class="t">TreeNode</span>(sortedArray[middleIndex]);
+ 
+        <span class="c">// recursively build the left half (elements before the middle) and</span>
+        <span class="c">// the right half (elements after the middle) as balanced subtrees</span>
+        currentRootNode.leftChild = buildFromRange(sortedArray, startIndex, middleIndex - <span class="n">1</span>);
+        currentRootNode.rightChild = buildFromRange(sortedArray, middleIndex + <span class="n">1</span>, endIndex);
+ 
+        <span class="k">return</span> currentRootNode;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[] sortedArray = {<span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>, <span class="n">4</span>, <span class="n">5</span>, <span class="n">6</span>, <span class="n">7</span>};
+        <span class="t">TreeNode</span> rootNode = buildBalancedBstFromSortedArray(sortedArray);
+        <span class="t">System</span>.out.println(rootNode.nodeValue); <span class="c">// 4</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time (each element becomes exactly one node), O(log n) extra space for the recursive call stack (since the resulting tree is balanced by construction).</strong></p>
+<p class="question"><strong>Q8. Build a tree using two arrays: one containing the tree in traversal (pre-order) order, and the other in-order.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/" target="_blank" rel="noopener">Construct Binary Tree From Preorder And Inorder Traversal &#8599;</a></span></p>
+<p class="problem">Problem statement: Given a pre-order traversal array and an in-order traversal array of the SAME binary tree, reconstruct the original tree. Example: given preOrderValues = {3, 9, 20, 15, 7} and inOrderValues = {9, 3, 15, 20, 7}, reconstruct the original tree.</p>
+<p>Approach: the FIRST value in the pre-order array is always the ROOT of the (sub)tree. Locate that same value within the in-order array -- everything to its LEFT in the in-order array belongs to the LEFT subtree, and everything to its RIGHT belongs to the RIGHT subtree. Apply this recursively.</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">HashMap</span>;
+<span class="k">import</span> java.util.<span class="t">Map</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">TreeBuilderFromTraversals</span> {
+ 
+    <span class="k">private</span> <span class="k">static</span> <span class="k">int</span> preOrderIndex;
+    <span class="k">private</span> <span class="k">static</span> <span class="t">Map</span>&lt;<span class="t">Integer</span>, <span class="t">Integer</span>&gt; valueToInOrderIndex;
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="t">TreeNode</span> buildTreeFromTraversals(<span class="k">int</span>[] preOrderValues, <span class="k">int</span>[] inOrderValues) {
+        preOrderIndex = <span class="n">0</span>;
+        valueToInOrderIndex = <span class="k">new</span> <span class="t">HashMap</span>&lt;&gt;();
+ 
+        <span class="c">// precompute each value&#x27;s position in the in-order array, for O(1) lookup</span>
+        <span class="k">for</span> (<span class="k">int</span> index = <span class="n">0</span>; index &lt; inOrderValues.length; index++) {
+            valueToInOrderIndex.put(inOrderValues[index], index);
+        }
+ 
+        <span class="k">return</span> buildSubtree(preOrderValues, <span class="n">0</span>, inOrderValues.length - <span class="n">1</span>);
+    }
+ 
+    <span class="c">// Builds the subtree corresponding to the in-order range [inOrderStart, inOrderEnd]</span>
+    <span class="k">private</span> <span class="k">static</span> <span class="t">TreeNode</span> buildSubtree(<span class="k">int</span>[] preOrderValues, <span class="k">int</span> inOrderStart, <span class="k">int</span> inOrderEnd) {
+        <span class="k">if</span> (inOrderStart &gt; inOrderEnd) {
+            <span class="k">return</span> <span class="k">null</span>;
+        }
+ 
+        <span class="c">// the NEXT value in pre-order is always the root of the current subtree</span>
+        <span class="k">int</span> currentRootValue = preOrderValues[preOrderIndex];
+        preOrderIndex++;
+        <span class="t">TreeNode</span> currentRootNode = <span class="k">new</span> <span class="t">TreeNode</span>(currentRootValue);
+ 
+        <span class="k">int</span> rootPositionInOrder = valueToInOrderIndex.get(currentRootValue);
+ 
+        <span class="c">// everything to the LEFT of the root&#x27;s position (in-order) is the left subtree;</span>
+        <span class="c">// build it FIRST, since pre-order visits left subtree entries before right ones</span>
+        currentRootNode.leftChild = buildSubtree(preOrderValues, inOrderStart, rootPositionInOrder - <span class="n">1</span>);
+        currentRootNode.rightChild = buildSubtree(preOrderValues, rootPositionInOrder + <span class="n">1</span>, inOrderEnd);
+ 
+        <span class="k">return</span> currentRootNode;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[] preOrderValues = {<span class="n">3</span>, <span class="n">9</span>, <span class="n">20</span>, <span class="n">15</span>, <span class="n">7</span>};
+        <span class="k">int</span>[] inOrderValues = {<span class="n">9</span>, <span class="n">3</span>, <span class="n">15</span>, <span class="n">20</span>, <span class="n">7</span>};
+ 
+        <span class="t">TreeNode</span> rootNode = buildTreeFromTraversals(preOrderValues, inOrderValues);
+        <span class="t">System</span>.out.println(rootNode.nodeValue); <span class="c">// 3 (the root)</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time, using the precomputed HashMap to look up each value&#x27;s in-order position in O(1) rather than searching linearly. O(n) extra space for the map and the recursive call stack.</strong></p>
+<h1 id="binary-search-tree-validation-comparison-2">Binary Search Tree Validation &amp; Comparison</h1>
+<p class="question"><strong>Q9. Validate that a tree is a proper Binary Search Tree. (Asked three times in the original list.)</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/validate-binary-search-tree/" target="_blank" rel="noopener">Validate Binary Search Tree &#8599;</a></span></p>
+<p class="problem">Problem statement: Given the root of a binary tree, determine whether it satisfies the Binary Search Tree property: for EVERY node, ALL values in its left subtree must be smaller than the node&#x27;s value, and ALL values in its right subtree must be larger -- not just checking the node&#x27;s IMMEDIATE children, but every descendant.</p>
+<div class="callout"><strong>Note: </strong>A common mistake: checking only that leftChild.nodeValue &lt; currentNode.nodeValue &lt; rightChild.nodeValue at every node is NOT sufficient. This local check can pass even for an INVALID BST -- for example, a node with value 10 whose right child has value 15, but that right child&#x27;s OWN left child has value 5, would incorrectly pass a purely local check, even though 5 violates the BST property relative to the ORIGINAL node with value 10 (5 is in the right subtree of 10, but is smaller than 10).</div>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">BinarySearchTreeValidator</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">boolean</span> isValidBst(<span class="t">TreeNode</span> rootNode) {
+        <span class="c">// pass down an allowed [lowerBound, upperBound) range that narrows</span>
+        <span class="c">// as we descend, rather than only checking IMMEDIATE children</span>
+        <span class="k">return</span> isValidBstInRange(rootNode, <span class="t">Long</span>.<span class="t">MIN_VALUE</span>, <span class="t">Long</span>.<span class="t">MAX_VALUE</span>);
+    }
+ 
+    <span class="k">private</span> <span class="k">static</span> <span class="k">boolean</span> isValidBstInRange(<span class="t">TreeNode</span> currentNode, <span class="k">long</span> lowerBound, <span class="k">long</span> upperBound) {
+        <span class="k">if</span> (currentNode == <span class="k">null</span>) {
+            <span class="k">return</span> <span class="k">true</span>; <span class="c">// an empty subtree is trivially valid</span>
+        }
+ 
+        <span class="k">if</span> (currentNode.nodeValue &lt;= lowerBound || currentNode.nodeValue &gt;= upperBound) {
+            <span class="k">return</span> <span class="k">false</span>; <span class="c">// violates the allowed range established by an ANCESTOR node</span>
+        }
+ 
+        <span class="c">// the left subtree&#x27;s values must all be less than currentNode&#x27;s value;</span>
+        <span class="c">// the right subtree&#x27;s values must all be greater</span>
+        <span class="k">return</span> isValidBstInRange(currentNode.leftChild, lowerBound, currentNode.nodeValue)
+            &amp;&amp; isValidBstInRange(currentNode.rightChild, currentNode.nodeValue, upperBound);
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">TreeNode</span> validTree = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">5</span>);
+        validTree.leftChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">3</span>);
+        validTree.rightChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">8</span>);
+        <span class="t">System</span>.out.println(isValidBst(validTree)); <span class="c">// true</span>
+ 
+        <span class="t">TreeNode</span> invalidTree = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">10</span>);
+        invalidTree.rightChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">15</span>);
+        invalidTree.rightChild.leftChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">5</span>); <span class="c">// 5 violates BST property relative to root (10)</span>
+        <span class="t">System</span>.out.println(isValidBst(invalidTree)); <span class="c">// false</span>
+    }
+}</code></pre>
+<div class="callout"><strong>Note: </strong>An equally valid alternative approach: perform an IN-ORDER traversal and check that the resulting sequence of values is STRICTLY INCREASING -- since a valid BST&#x27;s in-order traversal always produces sorted output, and conversely, any tree whose in-order traversal is sorted must be a valid BST. Both approaches run in O(n) time.</div>
+<p class="complexity"><strong>Complexity: O(n) time (every node is visited once), O(h) extra space for the recursive call stack.</strong></p>
+<p class="question"><strong>Q10. How do you compare two trees (to determine whether they are identical)?</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/same-tree/" target="_blank" rel="noopener">Same Tree &#8599;</a></span></p>
+<p class="problem">Problem statement: Given the roots of two binary trees, determine whether they are structurally IDENTICAL, with the SAME values at every corresponding position. Example: two trees with the same shape and the same values at every node should be considered equal; if either the shape or any value differs, they are not.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">BinaryTreeComparator</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">boolean</span> areTreesIdentical(<span class="t">TreeNode</span> firstRoot, <span class="t">TreeNode</span> secondRoot) {
+        <span class="k">if</span> (firstRoot == <span class="k">null</span> &amp;&amp; secondRoot == <span class="k">null</span>) {
+            <span class="k">return</span> <span class="k">true</span>; <span class="c">// both empty -- identical</span>
+        }
+        <span class="k">if</span> (firstRoot == <span class="k">null</span> || secondRoot == <span class="k">null</span>) {
+            <span class="k">return</span> <span class="k">false</span>; <span class="c">// exactly one is empty -- not identical</span>
+        }
+        <span class="k">if</span> (firstRoot.nodeValue != secondRoot.nodeValue) {
+            <span class="k">return</span> <span class="k">false</span>; <span class="c">// values differ at this position</span>
+        }
+ 
+        <span class="c">// both current nodes match -- recursively verify BOTH subtrees match too</span>
+        <span class="k">return</span> areTreesIdentical(firstRoot.leftChild, secondRoot.leftChild)
+            &amp;&amp; areTreesIdentical(firstRoot.rightChild, secondRoot.rightChild);
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">TreeNode</span> firstTree = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">1</span>);
+        firstTree.leftChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">2</span>);
+        firstTree.rightChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">3</span>);
+ 
+        <span class="t">TreeNode</span> secondTree = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">1</span>);
+        secondTree.leftChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">2</span>);
+        secondTree.rightChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">3</span>);
+ 
+        <span class="t">System</span>.out.println(areTreesIdentical(firstTree, secondTree)); <span class="c">// true</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(min(n, m)) time, where n and m are the two trees&#x27; sizes (the comparison stops as soon as any mismatch is found). O(h) extra space for the recursive call stack.</strong></p>
+<h1 id="tree-paths-value-transformation-3">Tree Paths &amp; Value Transformation</h1>
+<p class="question"><strong>Q11. Find the maximum unique values in a tree along a single path.</strong></p>
+<p class="problem">Problem statement: Given a binary tree, find the length (or count of DISTINCT values) along the path from the root to some leaf that contains the MOST unique values. This is interpreted here as: find the root-to-leaf path containing the greatest number of distinct values.</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">HashSet</span>;
+<span class="k">import</span> java.util.<span class="t">Set</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">MaximumUniqueValuePathFinder</span> {
+ 
+    <span class="k">private</span> <span class="k">static</span> <span class="k">int</span> maximumUniqueCountFound = <span class="n">0</span>;
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> findMaximumUniqueValuesOnPath(<span class="t">TreeNode</span> rootNode) {
+        maximumUniqueCountFound = <span class="n">0</span>;
+        exploreEveryPath(rootNode, <span class="k">new</span> <span class="t">HashSet</span>&lt;&gt;());
+        <span class="k">return</span> maximumUniqueCountFound;
+    }
+ 
+    <span class="k">private</span> <span class="k">static</span> <span class="k">void</span> exploreEveryPath(<span class="t">TreeNode</span> currentNode, <span class="t">Set</span>&lt;<span class="t">Integer</span>&gt; valuesOnCurrentPath) {
+        <span class="k">if</span> (currentNode == <span class="k">null</span>) {
+            <span class="k">return</span>;
+        }
+ 
+        <span class="k">boolean</span> wasNewValue = valuesOnCurrentPath.add(currentNode.nodeValue);
+ 
+        <span class="k">if</span> (currentNode.leftChild == <span class="k">null</span> &amp;&amp; currentNode.rightChild == <span class="k">null</span>) {
+            <span class="c">// reached a leaf -- this path is complete; check if it&#x27;s the best so far</span>
+            maximumUniqueCountFound = <span class="t">Math</span>.max(maximumUniqueCountFound, valuesOnCurrentPath.size());
+        } <span class="k">else</span> {
+            exploreEveryPath(currentNode.leftChild, valuesOnCurrentPath);
+            exploreEveryPath(currentNode.rightChild, valuesOnCurrentPath);
+        }
+ 
+        <span class="c">// backtrack: remove this node&#x27;s value before returning to the parent,</span>
+        <span class="c">// so SIBLING paths don&#x27;t incorrectly see it as part of THEIR path</span>
+        <span class="k">if</span> (wasNewValue) {
+            valuesOnCurrentPath.remove(currentNode.nodeValue);
+        }
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">TreeNode</span> rootNode = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">1</span>);
+        rootNode.leftChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">2</span>);
+        rootNode.rightChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">2</span>);
+        rootNode.leftChild.leftChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">3</span>);
+ 
+        <span class="t">System</span>.out.println(findMaximumUniqueValuesOnPath(rootNode)); <span class="c">// 3</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n x h) time in the worst case (each of the n nodes may be visited once per path, and there can be up to h paths of length h). O(h) extra space for the current path&#x27;s value set and the recursive call stack.</strong></p>
+<p class="question"><strong>Q12. Replace every node in a BST with the sum of every node greater than or equal to it.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/convert-bst-to-greater-tree/" target="_blank" rel="noopener">Convert Bst To Greater Tree &#8599;</a></span></p>
+<p class="problem">Problem statement: Given a Binary Search Tree, transform it so that every node&#x27;s value is replaced with the SUM of its original value plus every value GREATER than it in the original tree. This is the classic &quot;Convert BST to Greater Tree&quot; problem. Example: for a BST containing {2, 5, 13}, the value 13 becomes 13 (nothing greater), 5 becomes 5+13=18, and 2 becomes 2+5+13=20.</p>
+<p>Approach: perform a REVERSE in-order traversal (right subtree, then node, then left subtree) -- this visits nodes in DESCENDING order, letting a running sum accumulate exactly the total of every value seen so far (which is always greater than or equal to the current node) as the traversal proceeds.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">BstToGreaterSumTreeConverter</span> {
+ 
+    <span class="k">private</span> <span class="k">static</span> <span class="k">int</span> runningSumOfGreaterValues = <span class="n">0</span>;
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="t">TreeNode</span> convertToGreaterSumTree(<span class="t">TreeNode</span> rootNode) {
+        runningSumOfGreaterValues = <span class="n">0</span>;
+        traverseInReverseOrder(rootNode);
+        <span class="k">return</span> rootNode;
+    }
+ 
+    <span class="c">// Visits nodes from LARGEST to SMALLEST value (right, node, left) --</span>
+    <span class="c">// the opposite of a standard in-order traversal</span>
+    <span class="k">private</span> <span class="k">static</span> <span class="k">void</span> traverseInReverseOrder(<span class="t">TreeNode</span> currentNode) {
+        <span class="k">if</span> (currentNode == <span class="k">null</span>) {
+            <span class="k">return</span>;
+        }
+ 
+        traverseInReverseOrder(currentNode.rightChild); <span class="c">// visit larger values first</span>
+ 
+        runningSumOfGreaterValues += currentNode.nodeValue;
+        currentNode.nodeValue = runningSumOfGreaterValues; <span class="c">// replace with the accumulated sum</span>
+ 
+        traverseInReverseOrder(currentNode.leftChild);   <span class="c">// then visit smaller values</span>
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">TreeNode</span> rootNode = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">5</span>);
+        rootNode.leftChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">2</span>);
+        rootNode.rightChild = <span class="k">new</span> <span class="t">TreeNode</span>(<span class="n">13</span>);
+ 
+        convertToGreaterSumTree(rootNode);
+        <span class="t">System</span>.out.println(rootNode.nodeValue);            <span class="c">// 18 (5 + 13)</span>
+        <span class="t">System</span>.out.println(rootNode.leftChild.nodeValue);   <span class="c">// 20 (2 + 5 + 13)</span>
+        <span class="t">System</span>.out.println(rootNode.rightChild.nodeValue);  <span class="c">// 13 (nothing greater)</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time (every node is visited exactly once), O(h) extra space for the recursive call stack.</strong></p>
+<h1 id="graph-search-dfs-bfs-number-of-islands-4">Graph Search: DFS, BFS &amp; Number of Islands</h1>
+<p class="question"><strong>Q13. Graph searches and special cases of graph exploration (DFS). (Asked multiple times in the original list.)</strong></p>
+<p class="problem">Problem statement: Implement both Depth-First Search (DFS) and Breadth-First Search (BFS) on a graph represented as an adjacency list, and discuss when each is the right choice.</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">ArrayDeque</span>;
+<span class="k">import</span> java.util.<span class="t">ArrayList</span>;
+<span class="k">import</span> java.util.<span class="t">Deque</span>;
+<span class="k">import</span> java.util.<span class="t">HashSet</span>;
+<span class="k">import</span> java.util.<span class="t">LinkedList</span>;
+<span class="k">import</span> java.util.<span class="t">List</span>;
+<span class="k">import</span> java.util.<span class="t">Map</span>;
+<span class="k">import</span> java.util.<span class="t">Queue</span>;
+<span class="k">import</span> java.util.<span class="t">Set</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">GraphSearcher</span> {
+ 
+    <span class="c">// Depth-First Search: dives as deep as possible down one path before</span>
+    <span class="c">// backtracking. Implemented ITERATIVELY here using an explicit stack</span>
+    <span class="c">// (an equally valid, and often simpler, RECURSIVE version also exists).</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="t">List</span>&lt;<span class="t">String</span>&gt; searchDepthFirst(<span class="t">Map</span>&lt;<span class="t">String</span>, <span class="t">List</span>&lt;<span class="t">String</span>&gt;&gt; adjacencyList, <span class="t">String</span> startingNode) {
+        <span class="t">List</span>&lt;<span class="t">String</span>&gt; visitOrder = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
+        <span class="t">Set</span>&lt;<span class="t">String</span>&gt; visitedNodes = <span class="k">new</span> <span class="t">HashSet</span>&lt;&gt;();
+        <span class="t">Deque</span>&lt;<span class="t">String</span>&gt; nodesToExplore = <span class="k">new</span> <span class="t">ArrayDeque</span>&lt;&gt;();
+        nodesToExplore.push(startingNode);
+ 
+        <span class="k">while</span> (!nodesToExplore.isEmpty()) {
+            <span class="t">String</span> currentNode = nodesToExplore.pop();
+            <span class="k">if</span> (visitedNodes.contains(currentNode)) {
+                <span class="k">continue</span>; <span class="c">// already processed -- skip</span>
+            }
+            visitedNodes.add(currentNode);
+            visitOrder.add(currentNode);
+ 
+            <span class="k">for</span> (<span class="t">String</span> neighborNode : adjacencyList.getOrDefault(currentNode, <span class="t">List</span>.of())) {
+                <span class="k">if</span> (!visitedNodes.contains(neighborNode)) {
+                    nodesToExplore.push(neighborNode);
+                }
+            }
+        }
+        <span class="k">return</span> visitOrder;
+    }
+ 
+    <span class="c">// Breadth-First Search: explores all neighbors at the current distance</span>
+    <span class="c">// before moving further out -- guarantees the SHORTEST path is found first</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="t">List</span>&lt;<span class="t">String</span>&gt; searchBreadthFirst(<span class="t">Map</span>&lt;<span class="t">String</span>, <span class="t">List</span>&lt;<span class="t">String</span>&gt;&gt; adjacencyList, <span class="t">String</span> startingNode) {
+        <span class="t">List</span>&lt;<span class="t">String</span>&gt; visitOrder = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
+        <span class="t">Set</span>&lt;<span class="t">String</span>&gt; visitedNodes = <span class="k">new</span> <span class="t">HashSet</span>&lt;&gt;();
+        <span class="t">Queue</span>&lt;<span class="t">String</span>&gt; nodesToExplore = <span class="k">new</span> <span class="t">LinkedList</span>&lt;&gt;();
+        nodesToExplore.offer(startingNode);
+        visitedNodes.add(startingNode);
+ 
+        <span class="k">while</span> (!nodesToExplore.isEmpty()) {
+            <span class="t">String</span> currentNode = nodesToExplore.poll();
+            visitOrder.add(currentNode);
+ 
+            <span class="k">for</span> (<span class="t">String</span> neighborNode : adjacencyList.getOrDefault(currentNode, <span class="t">List</span>.of())) {
+                <span class="k">if</span> (!visitedNodes.contains(neighborNode)) {
+                    visitedNodes.add(neighborNode); <span class="c">// mark visited WHEN ENQUEUED, not when processed</span>
+                    nodesToExplore.offer(neighborNode);
+                }
+            }
+        }
+        <span class="k">return</span> visitOrder;
+    }
+}</code></pre>
+<p>When to use each: use BFS whenever the problem asks for the SHORTEST path or minimum number of steps in an unweighted graph (BFS guarantees the first time any node is reached, it&#x27;s via the shortest possible path). Use DFS when you need to explore an entire connected region (as in the Number of Islands problem below), detect cycles, or when the specific ORDER of exploration doesn&#x27;t matter and a simpler, often more memory-efficient (especially with the recursive call-stack-based version) traversal is sufficient.</p>
+<p class="complexity"><strong>Complexity: O(V + E) time for both DFS and BFS, where V is the number of vertices and E is the number of edges -- every vertex and edge is examined a constant number of times. O(V) extra space for the visited set and the stack/queue.</strong></p><div class="pager"><span><a href="05-linked-list.html">&larr; Linked Lists</a></span><span><a href="07-stacks-queues-hashmap-design.html">Stacks, Queues, HashMap &amp; Design &rarr;</a></span></div></main></div></body></html>

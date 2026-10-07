@@ -1,0 +1,349 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Stacks, Queues, HashMap &amp; Design</title><link rel="stylesheet" href="../assets/style.css"></head><body>
+<header class="top"><a href="../index.html">&#8962; Index</a><span class="sp"></span><strong>Stacks, Queues, HashMap &amp; Design</strong></header>
+<div class="layout"><nav class="toc"><a href="#circular-queue-0">Circular Queue</a><a href="#producer-consumer-a-custom-blockingqueue-1">Producer/Consumer: A Custom BlockingQueue</a><a href="#stack-modification-2">Stack Modification</a><a href="#building-a-hashmap-from-scratch-3">Building a HashMap from Scratch</a><a href="#dynamic-programming-house-robber-4">Dynamic Programming: House Robber</a></nav><main><h1 class="title">Java Programming Interview Questions — Document 6</h1><p class="sub">Stacks, Queues, HashMap Design &amp;amp; the House Robber Problem</p><p>This final document covers the remaining coding questions from the supplied question list: implementing a Circular Queue and a Producer/Consumer BlockingQueue from scratch, a stack-based modification problem, building a generic HashMap from scratch, and the classic House Robber dynamic programming problem.</p>
+<p>This is Document 6, the final document in a multi-document set covering all 158 questions from the original spreadsheet, organized by topic/data-structure area.</p>
+<h1 id="circular-queue-0">Circular Queue</h1>
+<p class="question"><strong>Q1. Discuss how you would implement a Circular Queue. (Asked twice in the original list.)</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/design-circular-queue/" target="_blank" rel="noopener">Design Circular Queue &#8599;</a></span></p>
+<p class="problem">Problem statement: Implement a fixed-capacity Circular Queue supporting enqueue (add to the back) and dequeue (remove from the front) operations, both in O(1) time, using a fixed-size backing array WITHOUT shifting elements on every dequeue.</p>
+<p>Approach: rather than always inserting at a growing array index and shifting elements after every removal (which a naive array-backed queue would require), a circular queue tracks separate frontIndex and rearIndex pointers, and WRAPS them back to 0 using the modulo operator whenever they reach the end of the backing array -- allowing the array&#x27;s available slots to be REUSED indefinitely as elements are added and removed, without ever shifting existing elements.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">CircularQueue</span> {
+ 
+    <span class="k">private</span> <span class="k">final</span> <span class="k">int</span>[] backingArray;
+    <span class="k">private</span> <span class="k">final</span> <span class="k">int</span> queueCapacity;
+    <span class="k">private</span> <span class="k">int</span> frontIndex;
+    <span class="k">private</span> <span class="k">int</span> elementCount;
+ 
+    <span class="k">public</span> <span class="t">CircularQueue</span>(<span class="k">int</span> queueCapacity) {
+        <span class="k">this</span>.queueCapacity = queueCapacity;
+        <span class="k">this</span>.backingArray = <span class="k">new</span> <span class="k">int</span>[queueCapacity];
+        <span class="k">this</span>.frontIndex = <span class="n">0</span>;
+        <span class="k">this</span>.elementCount = <span class="n">0</span>;
+    }
+ 
+    <span class="k">public</span> <span class="k">boolean</span> enqueue(<span class="k">int</span> newValue) {
+        <span class="k">if</span> (isFull()) {
+            <span class="k">return</span> <span class="k">false</span>; <span class="c">// queue is at capacity -- cannot add more</span>
+        }
+        <span class="c">// compute the next free slot, WRAPPING AROUND to the start of the</span>
+        <span class="c">// array once the end is reached</span>
+        <span class="k">int</span> insertionIndex = (frontIndex + elementCount) % queueCapacity;
+        backingArray[insertionIndex] = newValue;
+        elementCount++;
+        <span class="k">return</span> <span class="k">true</span>;
+    }
+ 
+    <span class="k">public</span> <span class="k">int</span> dequeue() {
+        <span class="k">if</span> (isEmpty()) {
+            <span class="k">throw</span> <span class="k">new</span> <span class="t">IllegalStateException</span>(<span class="s">&quot;Cannot dequeue from an empty queue&quot;</span>);
+        }
+        <span class="k">int</span> removedValue = backingArray[frontIndex];
+        <span class="c">// advance frontIndex, WRAPPING AROUND rather than shifting every</span>
+        <span class="c">// remaining element -- this is the key optimization over a naive</span>
+        <span class="c">// array-backed queue</span>
+        frontIndex = (frontIndex + <span class="n">1</span>) % queueCapacity;
+        elementCount--;
+        <span class="k">return</span> removedValue;
+    }
+ 
+    <span class="k">public</span> <span class="k">boolean</span> isFull() {
+        <span class="k">return</span> elementCount == queueCapacity;
+    }
+ 
+    <span class="k">public</span> <span class="k">boolean</span> isEmpty() {
+        <span class="k">return</span> elementCount == <span class="n">0</span>;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">CircularQueue</span> myQueue = <span class="k">new</span> <span class="t">CircularQueue</span>(<span class="n">3</span>);
+        myQueue.enqueue(<span class="n">10</span>);
+        myQueue.enqueue(<span class="n">20</span>);
+        myQueue.enqueue(<span class="n">30</span>);
+        <span class="t">System</span>.out.println(myQueue.isFull()); <span class="c">// true</span>
+ 
+        <span class="t">System</span>.out.println(myQueue.dequeue()); <span class="c">// 10</span>
+        myQueue.enqueue(<span class="n">40</span>); <span class="c">// reuses the now-free slot that held &quot;10&quot;, wrapping around</span>
+        <span class="t">System</span>.out.println(myQueue.dequeue()); <span class="c">// 20</span>
+        <span class="t">System</span>.out.println(myQueue.dequeue()); <span class="c">// 30</span>
+        <span class="t">System</span>.out.println(myQueue.dequeue()); <span class="c">// 40</span>
+    }
+}</code></pre>
+<div class="callout"><strong>Note: </strong>The key insight worth articulating clearly in an interview: a naive array-backed queue that always dequeues from index 0 must shift every remaining element left by one position on every dequeue, costing O(n) per removal. The circular queue&#x27;s wraparound technique (using the modulo operator to compute both the insertion point and the new front index) achieves the SAME functional behavior in O(1) per operation, by treating the backing array as if its end were logically connected back to its beginning.</div>
+<p class="complexity"><strong>Complexity: O(1) time for both enqueue and dequeue, O(capacity) total space.</strong></p>
+<h1 id="producer-consumer-a-custom-blockingqueue-1">Producer/Consumer: A Custom BlockingQueue</h1>
+<p class="question"><strong>Q2. Code a custom BlockingQueue in Java to implement the Producer/Consumer problem.</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/design-bounded-blocking-queue/" target="_blank" rel="noopener">Design Bounded Blocking Queue &#8599;</a></span></p>
+<p class="problem">Problem statement: Implement a thread-safe, fixed-capacity BlockingQueue from scratch, to be shared between one or more PRODUCER threads (which add items) and one or more CONSUMER threads (which remove items). A producer attempting to add to a FULL queue should BLOCK (wait) until space becomes available; a consumer attempting to remove from an EMPTY queue should BLOCK until an item becomes available.</p>
+<p>Approach: use a plain LinkedList as the backing storage, guarded by synchronized blocks, combined with wait() and notifyAll() (the standard Java inter-thread communication mechanism, covered in the earlier Multithreading document in this interview-guide series) to correctly implement the blocking behavior on both the producer and consumer sides.</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">LinkedList</span>;
+<span class="k">import</span> java.util.<span class="t">Queue</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">CustomBlockingQueue</span>&lt;<span class="t">ElementType</span>&gt; {
+ 
+    <span class="k">private</span> <span class="k">final</span> <span class="t">Queue</span>&lt;<span class="t">ElementType</span>&gt; backingQueue = <span class="k">new</span> <span class="t">LinkedList</span>&lt;&gt;();
+    <span class="k">private</span> <span class="k">final</span> <span class="k">int</span> queueCapacity;
+ 
+    <span class="k">public</span> <span class="t">CustomBlockingQueue</span>(<span class="k">int</span> queueCapacity) {
+        <span class="k">this</span>.queueCapacity = queueCapacity;
+    }
+ 
+    <span class="c">// Called by PRODUCER threads to add a new item</span>
+    <span class="k">public</span> <span class="k">synchronized</span> <span class="k">void</span> put(<span class="t">ElementType</span> newItem) <span class="k">throws</span> <span class="t">InterruptedException</span> {
+        <span class="c">// wait (releasing the lock while waiting) while the queue is full</span>
+        <span class="k">while</span> (backingQueue.size() == queueCapacity) {
+            wait();
+        }
+ 
+        backingQueue.offer(newItem);
+ 
+        <span class="c">// wake up any CONSUMER thread that might be waiting for an item to appear</span>
+        notifyAll();
+    }
+ 
+    <span class="c">// Called by CONSUMER threads to remove and return the next item</span>
+    <span class="k">public</span> <span class="k">synchronized</span> <span class="t">ElementType</span> take() <span class="k">throws</span> <span class="t">InterruptedException</span> {
+        <span class="c">// wait (releasing the lock while waiting) while the queue is empty</span>
+        <span class="k">while</span> (backingQueue.isEmpty()) {
+            wait();
+        }
+ 
+        <span class="t">ElementType</span> removedItem = backingQueue.poll();
+ 
+        <span class="c">// wake up any PRODUCER thread that might be waiting for space to free up</span>
+        notifyAll();
+ 
+        <span class="k">return</span> removedItem;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) <span class="k">throws</span> <span class="t">InterruptedException</span> {
+        <span class="t">CustomBlockingQueue</span>&lt;<span class="t">Integer</span>&gt; sharedQueue = <span class="k">new</span> <span class="t">CustomBlockingQueue</span>&lt;&gt;(<span class="n">5</span>);
+ 
+        <span class="t">Thread</span> producerThread = <span class="k">new</span> <span class="t">Thread</span>(() -&gt; {
+            <span class="k">try</span> {
+                <span class="k">for</span> (<span class="k">int</span> itemValue = <span class="n">1</span>; itemValue &lt;= <span class="n">10</span>; itemValue++) {
+                    sharedQueue.put(itemValue);
+                    <span class="t">System</span>.out.println(<span class="s">&quot;Produced: &quot;</span> + itemValue);
+                }
+            } <span class="k">catch</span> (<span class="t">InterruptedException</span> interruptedException) {
+                <span class="t">Thread</span>.currentThread().interrupt();
+            }
+        });
+ 
+        <span class="t">Thread</span> consumerThread = <span class="k">new</span> <span class="t">Thread</span>(() -&gt; {
+            <span class="k">try</span> {
+                <span class="k">for</span> (<span class="k">int</span> count = <span class="n">0</span>; count &lt; <span class="n">10</span>; count++) {
+                    <span class="k">int</span> consumedValue = sharedQueue.take();
+                    <span class="t">System</span>.out.println(<span class="s">&quot;Consumed: &quot;</span> + consumedValue);
+                }
+            } <span class="k">catch</span> (<span class="t">InterruptedException</span> interruptedException) {
+                <span class="t">Thread</span>.currentThread().interrupt();
+            }
+        });
+ 
+        producerThread.start();
+        consumerThread.start();
+        producerThread.join();
+        consumerThread.join();
+    }
+}</code></pre>
+<div class="callout"><strong>Note: </strong>Two details worth highlighting explicitly in an interview: (1) wait() must ALWAYS be called inside a WHILE loop re-checking the condition, never a plain if -- a thread woken by notifyAll() must re-verify the condition still holds, since another thread could have changed it first (covered in more detail in the Multithreading document earlier in this series). (2) notifyAll() is used rather than notify() specifically because there may be MULTIPLE waiting producers AND consumers simultaneously; notify() only wakes ONE arbitrary waiting thread, which could incorrectly wake a thread that&#x27;s still waiting for the WRONG condition (e.g. waking another producer when a CONSUMER was the one that needed to proceed), causing that thread to go back to sleep and potentially stall the system. In real production code, java.util.concurrent.BlockingQueue&#x27;s own battle-tested implementations (like ArrayBlockingQueue or LinkedBlockingQueue) should be used instead of a hand-rolled version like this one -- this exercise exists specifically to demonstrate understanding of the underlying wait/notify mechanics that those built-in classes are built on.</div>
+<p class="complexity"><strong>Complexity: O(1) time per put() or take() call (excluding any time spent actually blocked/waiting). O(capacity) total space.</strong></p>
+<h1 id="stack-modification-2">Stack Modification</h1>
+<p class="question"><strong>Q3. Stack modification based question.</strong></p>
+<p class="problem">Problem statement: A commonly-asked &quot;stack modification&quot; exercise: given a stack, sort its elements into ASCENDING order using only stack operations (push and pop) and, at most, ONE additional temporary stack -- no other data structure (like an array or ArrayList) may be used.</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">ArrayDeque</span>;
+<span class="k">import</span> java.util.<span class="t">Deque</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">StackSorter</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> sortStackAscending(<span class="t">Deque</span>&lt;<span class="t">Integer</span>&gt; originalStack) {
+        <span class="t">Deque</span>&lt;<span class="t">Integer</span>&gt; temporaryStack = <span class="k">new</span> <span class="t">ArrayDeque</span>&lt;&gt;();
+ 
+        <span class="k">while</span> (!originalStack.isEmpty()) {
+            <span class="k">int</span> currentValue = originalStack.pop();
+ 
+            <span class="c">// move elements from temporaryStack back into originalStack as</span>
+            <span class="c">// long as they are GREATER than currentValue, making room to</span>
+            <span class="c">// insert currentValue in its correctly-sorted position</span>
+            <span class="k">while</span> (!temporaryStack.isEmpty() &amp;&amp; temporaryStack.peek() &gt; currentValue) {
+                originalStack.push(temporaryStack.pop());
+            }
+ 
+            temporaryStack.push(currentValue);
+        }
+ 
+        <span class="c">// temporaryStack now holds every element in sorted order (smallest on</span>
+        <span class="c">// top) -- transfer it back into originalStack so the RESULT also has</span>
+        <span class="c">// the smallest element on top, matching a conventional sorted stack</span>
+        <span class="k">while</span> (!temporaryStack.isEmpty()) {
+            originalStack.push(temporaryStack.pop());
+        }
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">Deque</span>&lt;<span class="t">Integer</span>&gt; myStack = <span class="k">new</span> <span class="t">ArrayDeque</span>&lt;&gt;();
+        myStack.push(<span class="n">5</span>);
+        myStack.push(<span class="n">1</span>);
+        myStack.push(<span class="n">4</span>);
+        myStack.push(<span class="n">2</span>);
+        myStack.push(<span class="n">3</span>);
+ 
+        sortStackAscending(myStack);
+ 
+        <span class="k">while</span> (!myStack.isEmpty()) {
+            <span class="t">System</span>.out.print(myStack.pop() + <span class="s">&quot; &quot;</span>);
+        }
+        <span class="c">// 1 2 3 4 5</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n^2) time in the worst case (each of the n elements may need to be moved back and forth across the two stacks multiple times), O(n) extra space for the temporary stack.</strong></p>
+<h1 id="building-a-hashmap-from-scratch-3">Building a HashMap from Scratch</h1>
+<p class="question"><strong>Q4. Create a HashMap (using generics).</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/design-hashmap/" target="_blank" rel="noopener">Design Hashmap &#8599;</a></span></p>
+<p class="problem">Problem statement: Implement a simplified, GENERIC HashMap class from scratch, supporting put(key, value), get(key), and remove(key), using separate chaining to resolve hash collisions (as described conceptually in the Java Interview Guide document series&#x27; Collections Internals discussion).</p>
+<pre><code><span class="k">import</span> java.util.<span class="t">LinkedList</span>;
+ 
+<span class="k">public</span> <span class="k">class</span> <span class="t">CustomHashMap</span>&lt;<span class="t">KeyType</span>, <span class="t">ValueType</span>&gt; {
+ 
+    <span class="c">// A single key-value entry stored within a bucket&#x27;s chain</span>
+    <span class="k">private</span> <span class="k">static</span> <span class="k">class</span> <span class="t">MapEntry</span>&lt;<span class="t">KeyType</span>, <span class="t">ValueType</span>&gt; {
+        <span class="t">KeyType</span> entryKey;
+        <span class="t">ValueType</span> entryValue;
+ 
+        <span class="t">MapEntry</span>(<span class="t">KeyType</span> entryKey, <span class="t">ValueType</span> entryValue) {
+            <span class="k">this</span>.entryKey = entryKey;
+            <span class="k">this</span>.entryValue = entryValue;
+        }
+    }
+ 
+    <span class="k">private</span> <span class="k">final</span> <span class="t">LinkedList</span>&lt;<span class="t">MapEntry</span>&lt;<span class="t">KeyType</span>, <span class="t">ValueType</span>&gt;&gt;[] bucketArray;
+    <span class="k">private</span> <span class="k">final</span> <span class="k">int</span> bucketCount;
+ 
+    @<span class="t">SuppressWarnings</span>(<span class="s">&quot;unchecked&quot;</span>)
+    <span class="k">public</span> <span class="t">CustomHashMap</span>(<span class="k">int</span> bucketCount) {
+        <span class="k">this</span>.bucketCount = bucketCount;
+        <span class="k">this</span>.bucketArray = <span class="k">new</span> <span class="t">LinkedList</span>[bucketCount];
+        <span class="k">for</span> (<span class="k">int</span> index = <span class="n">0</span>; index &lt; bucketCount; index++) {
+            bucketArray[index] = <span class="k">new</span> <span class="t">LinkedList</span>&lt;&gt;();
+        }
+    }
+ 
+    <span class="c">// Computes which bucket a given key belongs in, based on its hashCode()</span>
+    <span class="k">private</span> <span class="k">int</span> computeBucketIndex(<span class="t">KeyType</span> targetKey) {
+        <span class="k">int</span> rawHashCode = targetKey.hashCode();
+        <span class="c">// Math.abs guards against a negative hashCode() producing a negative</span>
+        <span class="c">// (invalid) array index</span>
+        <span class="k">return</span> <span class="t">Math</span>.abs(rawHashCode) % bucketCount;
+    }
+ 
+    <span class="k">public</span> <span class="k">void</span> put(<span class="t">KeyType</span> targetKey, <span class="t">ValueType</span> newValue) {
+        <span class="k">int</span> bucketIndex = computeBucketIndex(targetKey);
+        <span class="t">LinkedList</span>&lt;<span class="t">MapEntry</span>&lt;<span class="t">KeyType</span>, <span class="t">ValueType</span>&gt;&gt; targetBucket = bucketArray[bucketIndex];
+ 
+        <span class="c">// check whether this key ALREADY exists in the bucket -- if so, update it</span>
+        <span class="k">for</span> (<span class="t">MapEntry</span>&lt;<span class="t">KeyType</span>, <span class="t">ValueType</span>&gt; existingEntry : targetBucket) {
+            <span class="k">if</span> (existingEntry.entryKey.equals(targetKey)) {
+                existingEntry.entryValue = newValue;
+                <span class="k">return</span>;
+            }
+        }
+        <span class="c">// key not found in the bucket -- add a brand new entry</span>
+        targetBucket.add(<span class="k">new</span> <span class="t">MapEntry</span>&lt;&gt;(targetKey, newValue));
+    }
+ 
+    <span class="k">public</span> <span class="t">ValueType</span> get(<span class="t">KeyType</span> targetKey) {
+        <span class="k">int</span> bucketIndex = computeBucketIndex(targetKey);
+        <span class="t">LinkedList</span>&lt;<span class="t">MapEntry</span>&lt;<span class="t">KeyType</span>, <span class="t">ValueType</span>&gt;&gt; targetBucket = bucketArray[bucketIndex];
+ 
+        <span class="k">for</span> (<span class="t">MapEntry</span>&lt;<span class="t">KeyType</span>, <span class="t">ValueType</span>&gt; currentEntry : targetBucket) {
+            <span class="k">if</span> (currentEntry.entryKey.equals(targetKey)) {
+                <span class="k">return</span> currentEntry.entryValue;
+            }
+        }
+        <span class="k">return</span> <span class="k">null</span>; <span class="c">// key not found</span>
+    }
+ 
+    <span class="k">public</span> <span class="k">boolean</span> remove(<span class="t">KeyType</span> targetKey) {
+        <span class="k">int</span> bucketIndex = computeBucketIndex(targetKey);
+        <span class="t">LinkedList</span>&lt;<span class="t">MapEntry</span>&lt;<span class="t">KeyType</span>, <span class="t">ValueType</span>&gt;&gt; targetBucket = bucketArray[bucketIndex];
+ 
+        <span class="k">return</span> targetBucket.removeIf(currentEntry -&gt; currentEntry.entryKey.equals(targetKey));
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">CustomHashMap</span>&lt;<span class="t">String</span>, <span class="t">Integer</span>&gt; myMap = <span class="k">new</span> <span class="t">CustomHashMap</span>&lt;&gt;(<span class="n">16</span>);
+        myMap.put(<span class="s">&quot;apples&quot;</span>, <span class="n">50</span>);
+        myMap.put(<span class="s">&quot;bananas&quot;</span>, <span class="n">30</span>);
+ 
+        <span class="t">System</span>.out.println(myMap.get(<span class="s">&quot;apples&quot;</span>)); <span class="c">// 50</span>
+        myMap.put(<span class="s">&quot;apples&quot;</span>, <span class="n">75</span>); <span class="c">// updates the existing entry</span>
+        <span class="t">System</span>.out.println(myMap.get(<span class="s">&quot;apples&quot;</span>)); <span class="c">// 75</span>
+ 
+        myMap.remove(<span class="s">&quot;bananas&quot;</span>);
+        <span class="t">System</span>.out.println(myMap.get(<span class="s">&quot;bananas&quot;</span>)); <span class="c">// null</span>
+    }
+}</code></pre>
+<div class="callout"><strong>Note: </strong>This simplified implementation omits DYNAMIC RESIZING (growing the bucket array and rehashing every entry once a load-factor threshold is exceeded, exactly as covered for the real java.util.HashMap in the Collections Internals discussion earlier in this interview-guide series). A more advanced follow-up to this exercise commonly asks the candidate to add that resizing behavior -- doubling bucketArray&#x27;s size and re-inserting every existing entry into the new, larger array whenever the map&#x27;s total entry count exceeds roughly 0.75 times the current bucket count.</div>
+<p class="complexity"><strong>Complexity: O(1) average-case time for put(), get(), and remove(), assuming a reasonably well-distributed hashCode() implementation for the key type and a bucket count that stays proportional to the number of stored entries -- exactly mirroring the real java.util.HashMap&#x27;s own performance characteristics.</strong></p>
+<h1 id="dynamic-programming-house-robber-4">Dynamic Programming: House Robber</h1>
+<p class="question"><strong>Q5. Dynamic programming: the House Robber problem (HackerRank).</strong><br><span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/house-robber/" target="_blank" rel="noopener">House Robber &#8599;</a></span></p>
+<p class="problem">Problem statement: A robber plans to rob houses along a street, where each house holds a certain amount of money, given as an array. The robber CANNOT rob two ADJACENT houses (doing so triggers an alarm). Determine the MAXIMUM total amount of money that can be robbed without robbing two adjacent houses. Example: calculateMaximumRobberyAmount({2, 7, 9, 3, 1}) should return 12 (rob house 0 for 2, house 2 for 9, and house 4 for 1 -- total 12; alternatively, robbing house 1 for 7 and house 3 for 3, plus house 0&#x27;s 2, is not better).</p>
+<p>Approach: at each house, the robber has exactly two choices: SKIP this house (carrying forward the best total achievable up to the PREVIOUS house), or ROB this house (adding its value to the best total achievable up to TWO houses back, since the immediately preceding house cannot also be robbed). Take whichever choice yields the larger total.</p>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">HouseRobberCalculator</span> {
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> calculateMaximumRobberyAmount(<span class="k">int</span>[] houseValues) {
+        <span class="k">if</span> (houseValues.length == <span class="n">0</span>) {
+            <span class="k">return</span> <span class="n">0</span>;
+        }
+        <span class="k">if</span> (houseValues.length == <span class="n">1</span>) {
+            <span class="k">return</span> houseValues[<span class="n">0</span>];
+        }
+ 
+        <span class="c">// bestAmountRobbingUpTo[i] = maximum amount robbable considering only</span>
+        <span class="c">// houses 0 through i</span>
+        <span class="k">int</span>[] bestAmountRobbingUpTo = <span class="k">new</span> <span class="k">int</span>[houseValues.length];
+        bestAmountRobbingUpTo[<span class="n">0</span>] = houseValues[<span class="n">0</span>];
+        bestAmountRobbingUpTo[<span class="n">1</span>] = <span class="t">Math</span>.max(houseValues[<span class="n">0</span>], houseValues[<span class="n">1</span>]);
+ 
+        <span class="k">for</span> (<span class="k">int</span> houseIndex = <span class="n">2</span>; houseIndex &lt; houseValues.length; houseIndex++) {
+            <span class="c">// option 1: skip this house -- carry forward the previous best</span>
+            <span class="k">int</span> bestIfSkippingThisHouse = bestAmountRobbingUpTo[houseIndex - <span class="n">1</span>];
+ 
+            <span class="c">// option 2: rob this house -- add its value to the best total</span>
+            <span class="c">// from TWO houses back (since the immediately previous house</span>
+            <span class="c">// cannot ALSO be robbed)</span>
+            <span class="k">int</span> bestIfRobbingThisHouse = bestAmountRobbingUpTo[houseIndex - <span class="n">2</span>] + houseValues[houseIndex];
+ 
+            bestAmountRobbingUpTo[houseIndex] = <span class="t">Math</span>.max(bestIfSkippingThisHouse, bestIfRobbingThisHouse);
+        }
+ 
+        <span class="k">return</span> bestAmountRobbingUpTo[houseValues.length - <span class="n">1</span>];
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="k">int</span>[] houseValues = {<span class="n">2</span>, <span class="n">7</span>, <span class="n">9</span>, <span class="n">3</span>, <span class="n">1</span>};
+        <span class="t">System</span>.out.println(calculateMaximumRobberyAmount(houseValues)); <span class="c">// 12</span>
+    }
+}</code></pre>
+<div class="callout"><strong>Note: </strong>This solution can be optimized from O(n) extra space down to O(1), since at any point it only ever needs the two MOST RECENT values from the bestAmountRobbingUpTo array -- exactly the same space-optimization pattern used for the iterative Fibonacci solution in Document 1 of this series, since House Robber&#x27;s recurrence has the identical two-steps-back structure.</div>
+<pre><code><span class="k">public</span> <span class="k">class</span> <span class="t">HouseRobberCalculator</span> {
+ 
+    <span class="c">// Space-optimized version: O(1) extra space, keeping only the two most</span>
+    <span class="c">// recently computed values rather than the full array</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">int</span> calculateMaximumRobberyAmountOptimized(<span class="k">int</span>[] houseValues) {
+        <span class="k">int</span> bestTwoHousesBack = <span class="n">0</span>;
+        <span class="k">int</span> bestOneHouseBack = <span class="n">0</span>;
+ 
+        <span class="k">for</span> (<span class="k">int</span> currentHouseValue : houseValues) {
+            <span class="k">int</span> bestIncludingCurrentHouse = <span class="t">Math</span>.max(
+                bestOneHouseBack,                              <span class="c">// skip this house</span>
+                bestTwoHousesBack + currentHouseValue);        <span class="c">// rob this house</span>
+ 
+            bestTwoHousesBack = bestOneHouseBack;
+            bestOneHouseBack = bestIncludingCurrentHouse;
+        }
+        <span class="k">return</span> bestOneHouseBack;
+    }
+ 
+    <span class="k">public</span> <span class="k">static</span> <span class="k">void</span> main(<span class="t">String</span>[] arguments) {
+        <span class="t">System</span>.out.println(calculateMaximumRobberyAmountOptimized(<span class="k">new</span> <span class="k">int</span>[]{<span class="n">2</span>, <span class="n">7</span>, <span class="n">9</span>, <span class="n">3</span>, <span class="n">1</span>})); <span class="c">// 12</span>
+    }
+}</code></pre>
+<p class="complexity"><strong>Complexity: O(n) time for both versions. O(n) extra space for the table-based version; O(1) extra space for the optimized version.</strong></p><div class="pager"><span><a href="06-trees-graphs.html">&larr; Trees &amp; Graphs</a></span><span><a href="08-java-interview-guide-part7.html">Java Interview Guide - Part 7 &rarr;</a></span></div></main></div></body></html>

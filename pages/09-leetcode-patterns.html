@@ -1,0 +1,959 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>20 Coding Interview Patterns</title><link rel="stylesheet" href="../assets/style.css"></head><body>
+<header class="top"><a href="../index.html">&#8962; Index</a><span class="sp"></span><strong>20 Coding Interview Patterns</strong></header>
+<div class="layout"><nav class="toc"><a href="#1-two-pointers-0">1. Two Pointers</a><a href="#2-hashing-frequency-counting-1">2. Hashing / Frequency Counting</a><a href="#3-sliding-window-fixed-size-2">3. Sliding Window — Fixed Size</a><a href="#4-prefix-sum-3">4. Prefix Sum</a><a href="#5-fast-slow-pointers-floyd-s-cycle-detection-4">5. Fast &amp; Slow Pointers (Floyd&#x27;s Cycle Detection)</a><a href="#6-sliding-window-variable-size-5">6. Sliding Window — Variable Size</a><a href="#7-binary-search-on-arrays-6">7. Binary Search (on Arrays)</a><a href="#8-kadane-s-algorithm-maximum-subarray-7">8. Kadane&#x27;s Algorithm (Maximum Subarray)</a><a href="#9-merge-intervals-8">9. Merge Intervals</a><a href="#10-monotonic-stack-9">10. Monotonic Stack</a><a href="#11-cyclic-sort-10">11. Cyclic Sort</a><a href="#12-heap-priority-queue-11">12. Heap / Priority Queue</a><a href="#13-binary-search-on-answer-solution-space-12">13. Binary Search on Answer (Solution Space)</a><a href="#14-tree-bfs-level-order-traversal-13">14. Tree BFS (Level Order Traversal)</a><a href="#15-tree-dfs-recursive-traversal-14">15. Tree DFS (Recursive Traversal)</a><a href="#16-backtracking-subsets-permutations-combinations-15">16. Backtracking (Subsets, Permutations, Combinations)</a><a href="#17-breadth-first-search-graphs-grids-16">17. Breadth-First Search (Graphs &amp; Grids)</a><a href="#18-topological-sort-17">18. Topological Sort</a><a href="#19-union-find-disjoint-set-union-18">19. Union-Find (Disjoint Set Union)</a><a href="#20-dynamic-programming-1d-2d-19">20. Dynamic Programming (1D &amp; 2D)</a><a href="#how-to-use-this-guide-20">How to Use This Guide</a></nav><main><h1 class="title">20 Coding Interview Patterns</h1><p class="sub">An in-depth, beginner-friendly study guide — ordered from easiest to hardest</p><p>This guide covers 20 core algorithmic patterns that cover the large majority of coding interview questions. Patterns are ordered from easiest to hardest to learn, so you can study them in sequence and build on what you already know. Each pattern includes a detailed explanation (~300 words), a visual diagram of the mechanism, and Java pseudocode with a clear problem statement, meaningful variable names, and inline comments explaining every step.</p>
+<p>Study order: Two Pointers -&gt; Hashing -&gt; Fixed Sliding Window -&gt; Prefix Sum -&gt; Fast &amp; Slow Pointers -&gt; Variable Sliding Window -&gt; Binary Search -&gt; Kadane&#x27;s Algorithm -&gt; Merge Intervals -&gt; Monotonic Stack -&gt; Cyclic Sort -&gt; Heap -&gt; Binary Search on Answer -&gt; Tree BFS -&gt; Tree DFS -&gt; Backtracking -&gt; Graph BFS -&gt; Topological Sort -&gt; Union-Find -&gt; Dynamic Programming.</p>
+<h1 id="1-two-pointers-0">1. Two Pointers</h1>
+<p>The two pointers technique replaces nested loops with two indices that move through the data in a coordinated way, usually across a sorted array. Where a brute-force solution might check every pair of elements with two nested loops (O(n^2)), two pointers typically solves the same problem in a single O(n) pass by being smart about which pairs are worth checking.</p>
+<p>The most common setup is the &#x27;opposite ends&#x27; variant: one pointer starts at the beginning of the array (leftIndex) and another starts at the end (rightIndex). At each step, you evaluate the pair they point to and decide how to move based on that result. For example, in the &#x27;Two Sum II&#x27; problem on a sorted array, if the sum of the two pointed-to values is too small, you know you need a bigger number, so you move leftIndex rightward. If the sum is too large, you move rightIndex leftward. Because the array is sorted, this decision is always safe — you never skip over the correct answer. Each step eliminates at least one element from consideration, guaranteeing the whole array is covered in linear time.</p>
+<p>A closely related variant appears in &#x27;Container With Most Water,&#x27; where you always move the pointer at the shorter wall, because moving the taller wall can only decrease or keep the same area — it can never help, since the water level is bounded by the shorter side.</p>
+<p>Two pointers also generalizes to three or more values, as in 3Sum: fix one element with an outer loop, then use two pointers to search the remaining sorted portion of the array for a pair that completes the target sum. Careful duplicate-skipping is needed here to avoid repeated triplets. This pattern is your first instinct whenever you see a sorted array (or one you can sort) and a problem involving pairs, triplets, or ranges that need to satisfy some sum or comparison condition.</p>
+<h2 id="how-it-works-visually-1">How it works — visually</h2>
+<figure><img src="../assets/img/09-leetcode-patterns-1.png" alt="Diagram"></figure>
+<h2 id="java-pseudocode-1">Java pseudocode</h2>
+<h3 id="two-sum-ii-sorted-array-1">Two Sum II (sorted array) <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/" target="_blank" rel="noopener">Two Sum Ii Input Array Is Sorted &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>Given a 1-indexed array of integers sortedNumbers that is already sorted in ascending order, find two numbers such that they add up to a specific targetValue. Return the indices of the two numbers (1-indexed) as an array. Example: sortedNumbers = [2,7,11,15], targetValue = 9 -&gt; answer is [1,2] because sortedNumbers[0] + sortedNumbers[1] = 2 + 7 = 9.</div>
+<pre><code><span class="k">int</span>[] findTwoSumIndices(<span class="k">int</span>[] sortedNumbers, <span class="k">int</span> targetValue) {
+    <span class="c">// leftIndex starts at the smallest value, rightIndex at the largest value</span>
+    <span class="k">int</span> leftIndex = <span class="n">0</span>;
+    <span class="k">int</span> rightIndex = sortedNumbers.length - <span class="n">1</span>;
+ 
+    <span class="k">while</span> (leftIndex &lt; rightIndex) {
+        <span class="k">int</span> currentSum = sortedNumbers[leftIndex] + sortedNumbers[rightIndex];
+ 
+        <span class="k">if</span> (currentSum == targetValue) {
+            <span class="c">// found the pair; problem wants 1-indexed positions</span>
+            <span class="k">return</span> <span class="k">new</span> <span class="k">int</span>[]{leftIndex + <span class="n">1</span>, rightIndex + <span class="n">1</span>};
+        } <span class="k">else</span> <span class="k">if</span> (currentSum &lt; targetValue) {
+            <span class="c">// sum too small -&gt; we need a bigger number -&gt; move left pointer right</span>
+            leftIndex++;
+        } <span class="k">else</span> {
+            <span class="c">// sum too large -&gt; we need a smaller number -&gt; move right pointer left</span>
+            rightIndex--;
+        }
+    }
+    <span class="k">return</span> <span class="k">new</span> <span class="k">int</span>[]{-<span class="n">1</span>, -<span class="n">1</span>}; <span class="c">// no valid pair found</span>
+}</code></pre>
+<h3 id="container-with-most-water-1">Container With Most Water <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/container-with-most-water/" target="_blank" rel="noopener">Container With Most Water &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>You are given an integer array wallHeights of length n, where wallHeights[i] represents the height of a vertical line drawn at position i. Find two lines that, together with the x-axis, form a container that holds the most water. Return the maximum amount of water the container can store. Example: wallHeights = [1,8,6,2,5,4,8,3,7] -&gt; answer is 49 (lines at index 1 and index 8, height min(8,7)=7, width 7, area=49).</div>
+<pre><code><span class="k">int</span> findMaxWaterArea(<span class="k">int</span>[] wallHeights) {
+    <span class="k">int</span> leftIndex = <span class="n">0</span>;
+    <span class="k">int</span> rightIndex = wallHeights.length - <span class="n">1</span>;
+    <span class="k">int</span> bestAreaFound = <span class="n">0</span>;
+ 
+    <span class="k">while</span> (leftIndex &lt; rightIndex) {
+        <span class="k">int</span> currentWidth = rightIndex - leftIndex;
+        <span class="c">// container&#x27;s water level is capped by the SHORTER of the two walls</span>
+        <span class="k">int</span> shorterWallHeight = <span class="t">Math</span>.min(wallHeights[leftIndex], wallHeights[rightIndex]);
+        <span class="k">int</span> currentArea = currentWidth * shorterWallHeight;
+        bestAreaFound = <span class="t">Math</span>.max(bestAreaFound, currentArea);
+ 
+        <span class="c">// always move the pointer at the shorter wall:</span>
+        <span class="c">// moving the taller wall can never increase the area (still capped by the short one)</span>
+        <span class="k">if</span> (wallHeights[leftIndex] &lt; wallHeights[rightIndex]) {
+            leftIndex++;
+        } <span class="k">else</span> {
+            rightIndex--;
+        }
+    }
+    <span class="k">return</span> bestAreaFound;
+}</code></pre>
+<p>Practice: Two Sum II, Container With Most Water, 3Sum, Trapping Rain Water.</p>
+<h1 id="2-hashing-frequency-counting-1">2. Hashing / Frequency Counting</h1>
+<p>Hashing is less a single algorithm and more a foundational tool: using a HashMap (or a fixed-size array when the key space is small, like lowercase letters) to achieve O(1) average-time lookups, insertions, and updates. This pattern shows up constantly in problems involving counting, grouping, or checking for existence, because it converts what would otherwise be an O(n) linear search into a constant-time operation.</p>
+<p>The most direct application is frequency counting: iterate through a collection once, and for each element, increment its count in a map. This single pass gives you complete information about how often everything appears, which you can then use to answer questions like &#x27;is this a valid anagram&#x27; (do two strings have identical character frequency profiles) or &#x27;what are the top K most frequent elements.&#x27;</p>
+<p>A more advanced use is grouping by a derived key. In &#x27;Group Anagrams,&#x27; two words are anagrams of each other if and only if their sorted character sequences are identical. So you compute a &#x27;canonical key&#x27; for each word (its sorted form) and use that key to bucket words into a HashMap&lt;String, List&lt;String&gt;&gt;. Words that produce the same key end up in the same group automatically, with no need to compare every pair of words directly — an approach that would be O(n^2).</p>
+<p>For &#x27;Top K Frequent Elements,&#x27; after building the frequency map, you can either sort by frequency (O(n log n)) or use a clever bucket-sort trick: since frequency can never exceed the array&#x27;s length, you create an array of buckets indexed by frequency count, and place each element into the bucket matching its frequency. Reading buckets from highest frequency down instantly gives you the top K elements in O(n) time. Recognize hashing whenever a problem needs fast membership checks, deduplication, counting, or grouping by some computed property.</p>
+<h2 id="how-it-works-visually-2">How it works — visually</h2>
+<figure><img src="../assets/img/09-leetcode-patterns-2.png" alt="Diagram"></figure>
+<h2 id="java-pseudocode-2">Java pseudocode</h2>
+<h3 id="group-anagrams-2">Group Anagrams <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/group-anagrams/" target="_blank" rel="noopener">Group Anagrams &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>Given an array of strings inputWords, group the anagrams together. You can return the answer in any order. Example: inputWords = [&quot;eat&quot;,&quot;tea&quot;,&quot;tan&quot;,&quot;ate&quot;,&quot;nat&quot;,&quot;bat&quot;] -&gt; answer is [[&quot;bat&quot;],[&quot;nat&quot;,&quot;tan&quot;],[&quot;ate&quot;,&quot;eat&quot;,&quot;tea&quot;]].</div>
+<pre><code><span class="t">List</span>&lt;<span class="t">List</span>&lt;<span class="t">String</span>&gt;&gt; groupAllAnagrams(<span class="t">String</span>[] inputWords) {
+    <span class="c">// maps a canonical sorted-letter key -&gt; list of original words sharing that key</span>
+    <span class="t">Map</span>&lt;<span class="t">String</span>, <span class="t">List</span>&lt;<span class="t">String</span>&gt;&gt; anagramGroups = <span class="k">new</span> <span class="t">HashMap</span>&lt;&gt;();
+ 
+    <span class="k">for</span> (<span class="t">String</span> currentWord : inputWords) {
+        <span class="k">char</span>[] wordLetters = currentWord.toCharArray();
+        <span class="t">Arrays</span>.sort(wordLetters);
+        <span class="t">String</span> sortedKey = <span class="k">new</span> <span class="t">String</span>(wordLetters); <span class="c">// anagrams share this same sorted key</span>
+ 
+        anagramGroups.computeIfAbsent(sortedKey, key -&gt; <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;()).add(currentWord);
+    }
+    <span class="k">return</span> <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;(anagramGroups.values());
+}</code></pre>
+<p>Practice: Group Anagrams, Longest Consecutive Sequence, Top K Frequent Elements, Valid Anagram.</p>
+<h1 id="3-sliding-window-fixed-size-2">3. Sliding Window — Fixed Size</h1>
+<p>The fixed-size sliding window pattern is used whenever a problem specifies a constant window length K and asks you to compute something — a sum, average, maximum, or count — for every possible window of that size as it slides across the array. The naive approach recomputes the answer from scratch for each window position, costing O(n*k) time. The sliding window technique instead updates the answer incrementally in O(1) per shift, bringing the total time down to O(n).</p>
+<p>The mechanism works in two phases. First, you compute the initial answer for the very first window — for example, summing the first K elements. Second, you &#x27;slide&#x27; the window one position at a time: as the window moves right by one, exactly one element leaves the window on the left, and exactly one new element enters on the right. Instead of resumming everything, you simply subtract the value that left and add the value that entered. This single arithmetic update replaces an entire re-scan of K elements, which is where the efficiency gain comes from.</p>
+<p>For example, in &#x27;Maximum Average Subarray I,&#x27; you first sum the first K elements to get your baseline window sum. Then, as you slide forward, each new window&#x27;s sum is simply the previous sum minus the element that just left, plus the element that just entered. You track the maximum sum encountered across all slides, and divide by K at the end to get the average.</p>
+<p>A slightly more advanced variant appears in problems like &#x27;K Radius Subarray Averages,&#x27; where the window is centered on each index rather than anchored to the left — but the same slide-and-adjust logic applies, just with a window size of 2k+1. Recognize the fixed-size sliding window whenever the problem explicitly gives you a window size K and asks for a per-window aggregate computed across the whole array.</p>
+<h2 id="how-it-works-visually-3">How it works — visually</h2>
+<figure><img src="../assets/img/09-leetcode-patterns-3.png" alt="Diagram"></figure>
+<h2 id="java-pseudocode-3">Java pseudocode</h2>
+<h3 id="maximum-average-subarray-i-3">Maximum Average Subarray I <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/maximum-average-subarray-i/" target="_blank" rel="noopener">Maximum Average Subarray I &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>You are given an integer array inputNumbers consisting of n elements, and an integer windowSize. Find a contiguous subarray of length windowSize that has the maximum average value, and return this value. Example: inputNumbers = [1,12,-5,-6,50,3], windowSize = 4 -&gt; answer is 12.75 (average of [12,-5,-6,50]).</div>
+<pre><code><span class="k">double</span> findMaxAverageOfWindow(<span class="k">int</span>[] inputNumbers, <span class="k">int</span> windowSize) {
+    <span class="c">// build the sum of the very first window</span>
+    <span class="k">int</span> currentWindowSum = <span class="n">0</span>;
+    <span class="k">for</span> (<span class="k">int</span> index = <span class="n">0</span>; index &lt; windowSize; index++) {
+        currentWindowSum += inputNumbers[index];
+    }
+ 
+    <span class="k">int</span> highestWindowSum = currentWindowSum;
+ 
+    <span class="c">// slide the window one step at a time across the rest of the array</span>
+    <span class="k">for</span> (<span class="k">int</span> index = windowSize; index &lt; inputNumbers.length; index++) {
+        <span class="c">// remove the element leaving on the left, add the element entering on the right</span>
+        currentWindowSum += inputNumbers[index] - inputNumbers[index - windowSize];
+        highestWindowSum = <span class="t">Math</span>.max(highestWindowSum, currentWindowSum);
+    }
+    <span class="k">return</span> (<span class="k">double</span>) highestWindowSum / windowSize;
+}</code></pre>
+<h3 id="k-radius-subarray-averages-3">K Radius Subarray Averages <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/k-radius-subarray-averages/" target="_blank" rel="noopener">K Radius Subarray Averages &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>You are given a 0-indexed array inputNumbers and an integer radiusValue. For each index centerIndex, find the average of all elements between centerIndex - radiusValue and centerIndex + radiusValue (inclusive). If fewer than radiusValue elements exist on either side, the result for that index is -1. Return the array of averages.</div>
+<pre><code><span class="k">int</span>[] findRadiusWindowAverages(<span class="k">int</span>[] inputNumbers, <span class="k">int</span> radiusValue) {
+    <span class="k">int</span> arrayLength = inputNumbers.length;
+    <span class="k">int</span>[] resultAverages = <span class="k">new</span> <span class="k">int</span>[arrayLength];
+    <span class="t">Arrays</span>.fill(resultAverages, -<span class="n">1</span>); <span class="c">// default: not enough elements on one side</span>
+ 
+    <span class="k">int</span> windowSize = <span class="n">2</span> * radiusValue + <span class="n">1</span>;
+    <span class="k">if</span> (windowSize &gt; arrayLength) <span class="k">return</span> resultAverages;
+ 
+    <span class="c">// sum of the very first full window (centered at index = radiusValue)</span>
+    <span class="k">long</span> currentWindowSum = <span class="n">0</span>;
+    <span class="k">for</span> (<span class="k">int</span> index = <span class="n">0</span>; index &lt; windowSize; index++) {
+        currentWindowSum += inputNumbers[index];
+    }
+    resultAverages[radiusValue] = (<span class="k">int</span>) (currentWindowSum / windowSize);
+ 
+    <span class="c">// slide the window forward, one center index at a time</span>
+    <span class="k">for</span> (<span class="k">int</span> index = windowSize; index &lt; arrayLength; index++) {
+        currentWindowSum += inputNumbers[index] - inputNumbers[index - windowSize];
+        resultAverages[index - radiusValue] = (<span class="k">int</span>) (currentWindowSum / windowSize);
+    }
+    <span class="k">return</span> resultAverages;
+}</code></pre>
+<p>Practice: Maximum Average Subarray I, Maximum Sum Subarray of Size K, Diet Plan Performance, K Radius Subarray Averages.</p>
+<h1 id="4-prefix-sum-3">4. Prefix Sum</h1>
+<p>Prefix sum is one of the simplest yet most powerful techniques for answering range-based questions efficiently. The core idea is to trade a small amount of preprocessing time and space for dramatically faster queries. Instead of recalculating the sum of a subarray every time you&#x27;re asked for it — which takes O(n) time per query — you build a helper array once, in O(n) time total, and then answer every subsequent range-sum query in O(1).</p>
+<p>Here&#x27;s the mechanism: you create a new array called the prefix array, where each position i stores the cumulative sum of all elements from the start of the original array up to (but not including) index i. So prefixSums[0] is 0 (sum of nothing), prefixSums[1] is inputNumbers[0], prefixSums[2] is inputNumbers[0]+inputNumbers[1], and so on. Once this array exists, the sum of any subarray from index i to j (inclusive) can be computed instantly using the formula prefixSums[j+1] minus prefixSums[i]. This works because prefixSums[j+1] contains everything up to j, and subtracting prefixSums[i] removes everything before i, leaving exactly the range you want.</p>
+<p>This pattern becomes especially powerful when combined with a HashMap. For problems like &#x27;count the number of subarrays that sum to exactly K,&#x27; you iterate through the array while maintaining a running sum, and at each step you check whether (currentSum - K) has been seen before. If it has, that means there&#x27;s an earlier point in the array where, if you had stopped the running sum there, the difference between then and now would equal K — meaning you&#x27;ve found a valid subarray. This turns an O(n^2) brute-force search into a single O(n) pass.</p>
+<p>Recognize this pattern whenever a problem repeatedly asks about sums (or products, XORs, or counts) over a range, especially when the array itself doesn&#x27;t change between queries.</p>
+<h2 id="how-it-works-visually-4">How it works — visually</h2>
+<figure><img src="../assets/img/09-leetcode-patterns-4.png" alt="Diagram"></figure>
+<h2 id="java-pseudocode-4">Java pseudocode</h2>
+<h3 id="range-sum-query-immutable-4">Range Sum Query — Immutable <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/range-sum-query/" target="_blank" rel="noopener">Range Sum Query &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>Design a class that, given an integer array inputNumbers, can answer multiple queries of the form: &#x27;what is the sum of elements between leftIndex and rightIndex (inclusive)?&#x27; Example: inputNumbers = [-2,0,3,-5,2,-1]; sumRange(0,2) -&gt; 1; sumRange(2,5) -&gt; -1.</div>
+<pre><code><span class="k">class</span> <span class="t">RangeSumQuery</span> {
+    <span class="k">int</span>[] prefixSums;
+ 
+    <span class="t">RangeSumQuery</span>(<span class="k">int</span>[] inputNumbers) {
+        <span class="c">// prefixSums[i] = sum of all elements before index i</span>
+        prefixSums = <span class="k">new</span> <span class="k">int</span>[inputNumbers.length + <span class="n">1</span>];
+        <span class="k">for</span> (<span class="k">int</span> index = <span class="n">0</span>; index &lt; inputNumbers.length; index++) {
+            prefixSums[index + <span class="n">1</span>] = prefixSums[index] + inputNumbers[index];
+        }
+    }
+ 
+    <span class="k">int</span> sumRange(<span class="k">int</span> leftIndex, <span class="k">int</span> rightIndex) {
+        <span class="c">// sum(left..right) = everything up to &quot;right&quot; minus everything before &quot;left&quot;</span>
+        <span class="k">return</span> prefixSums[rightIndex + <span class="n">1</span>] - prefixSums[leftIndex];
+    }
+}</code></pre>
+<h3 id="subarray-sum-equals-k-4">Subarray Sum Equals K <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/subarray-sum-equals-k/" target="_blank" rel="noopener">Subarray Sum Equals K &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>Given an array of integers inputNumbers and an integer targetSum, return the total number of contiguous subarrays whose elements sum to exactly targetSum. Example: inputNumbers = [1,1,1], targetSum = 2 -&gt; answer is 2.</div>
+<pre><code><span class="k">int</span> countSubarraysWithTargetSum(<span class="k">int</span>[] inputNumbers, <span class="k">int</span> targetSum) {
+    <span class="c">// maps a prefix-sum value -&gt; how many times that prefix sum has occurred so far</span>
+    <span class="t">Map</span>&lt;<span class="t">Integer</span>, <span class="t">Integer</span>&gt; prefixSumFrequency = <span class="k">new</span> <span class="t">HashMap</span>&lt;&gt;();
+    prefixSumFrequency.put(<span class="n">0</span>, <span class="n">1</span>); <span class="c">// an empty prefix (sum = 0) has occurred once</span>
+ 
+    <span class="k">int</span> runningSum = <span class="n">0</span>;
+    <span class="k">int</span> matchingSubarrayCount = <span class="n">0</span>;
+ 
+    <span class="k">for</span> (<span class="k">int</span> currentValue : inputNumbers) {
+        runningSum += currentValue;
+ 
+        <span class="c">// if (runningSum - targetSum) occurred before, that earlier point marks</span>
+        <span class="c">// the start of a subarray whose sum is exactly targetSum</span>
+        matchingSubarrayCount += prefixSumFrequency.getOrDefault(runningSum - targetSum, <span class="n">0</span>);
+ 
+        prefixSumFrequency.put(runningSum, prefixSumFrequency.getOrDefault(runningSum, <span class="n">0</span>) + <span class="n">1</span>);
+    }
+    <span class="k">return</span> matchingSubarrayCount;
+}</code></pre>
+<p>Practice: Two Sum, Subarray Sum Equals K, Continuous Subarray Sum, Range Sum Query – Immutable.</p>
+<h1 id="5-fast-slow-pointers-floyd-s-cycle-detection-4">5. Fast &amp; Slow Pointers (Floyd&#x27;s Cycle Detection)</h1>
+<p>The fast and slow pointers technique, often called &#x27;Floyd&#x27;s Cycle Detection&#x27; or the &#x27;tortoise and hare&#x27; algorithm, uses two pointers moving through a sequence at different speeds to detect cycles or locate structural midpoints — all without needing extra memory to track visited nodes.</p>
+<p>The setup is simple: both pointers start at the same position. The slow pointer advances one step at a time, while the fast pointer advances two steps at a time. If the underlying structure — most commonly a linked list — has no cycle, the fast pointer will simply reach the end (null) first, and you can conclude there&#x27;s no loop. But if there IS a cycle, something interesting happens: the fast pointer, being twice as quick, will eventually &#x27;lap&#x27; the slow pointer from behind and the two will land on the exact same node at the same time. This guaranteed meeting is the mathematical basis for cycle detection — since both pointers are moving forward through a finite loop, the gap between them shrinks by one node every step (from fast&#x27;s perspective) until it hits zero.</p>
+<p>The same two-speed idea finds the middle of a linked list without knowing its length in advance: when the fast pointer reaches the end, the slow pointer — having moved at half the speed — is necessarily sitting at the midpoint. This avoids the need for a first pass just to count nodes.</p>
+<p>This pattern also generalizes beyond linked lists to any sequence defined by repeatedly applying a function, such as the &#x27;Happy Number&#x27; problem, where you repeatedly replace a number with the sum of the squares of its digits. If this process cycles instead of reaching 1, applying fast and slow pointers to the sequence of results will detect that cycle exactly the same way. Recognize this pattern whenever you need cycle detection, midpoint-finding, or duplicate detection in a sequence, and you want to avoid the O(n) extra space that a visited-set approach would require.</p>
+<h2 id="how-it-works-visually-5">How it works — visually</h2>
+<figure><img src="../assets/img/09-leetcode-patterns-5.png" alt="Diagram"></figure>
+<h2 id="java-pseudocode-5">Java pseudocode</h2>
+<h3 id="happy-number-5">Happy Number <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/happy-number/" target="_blank" rel="noopener">Happy Number &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>Write an algorithm to determine if a number candidateNumber is &#x27;happy&#x27;. A happy number is defined by repeatedly replacing the number with the sum of the squares of its digits, until the number equals 1 (happy) or it loops endlessly in a cycle that does not include 1 (not happy). Example: candidateNumber = 19 -&gt; true.</div>
+<pre><code><span class="k">boolean</span> isHappyNumber(<span class="k">int</span> candidateNumber) {
+    <span class="k">int</span> slowValue = candidateNumber;
+    <span class="k">int</span> fastValue = candidateNumber;
+ 
+    <span class="k">do</span> {
+        slowValue = sumOfSquaredDigits(slowValue);              <span class="c">// 1 step</span>
+        fastValue = sumOfSquaredDigits(sumOfSquaredDigits(fastValue)); <span class="c">// 2 steps</span>
+    } <span class="k">while</span> (slowValue != fastValue); <span class="c">// they meet once a cycle is entered</span>
+ 
+    <span class="k">return</span> slowValue == <span class="n">1</span>; <span class="c">// if the cycle they met in contains 1, it&#x27;s happy</span>
+}
+ 
+<span class="k">int</span> sumOfSquaredDigits(<span class="k">int</span> inputNumber) {
+    <span class="k">int</span> digitSquareSum = <span class="n">0</span>;
+    <span class="k">while</span> (inputNumber &gt; <span class="n">0</span>) {
+        <span class="k">int</span> currentDigit = inputNumber % <span class="n">10</span>;
+        digitSquareSum += currentDigit * currentDigit;
+        inputNumber /= <span class="n">10</span>;
+    }
+    <span class="k">return</span> digitSquareSum;
+}</code></pre>
+<p>Practice: Linked List Cycle, Middle of the Linked List, Remove Duplicates From Sorted Array, Happy Number.</p>
+<h1 id="6-sliding-window-variable-size-5">6. Sliding Window — Variable Size</h1>
+<p>Unlike the fixed-size version, the variable-size sliding window grows and shrinks dynamically based on whether the current window satisfies some condition. This pattern is the go-to approach for problems phrased as &#x27;find the longest/shortest substring or subarray such that some property holds&#x27; — for example, no repeating characters, at most K distinct elements, or containing all characters of another string.</p>
+<p>The technique uses two pointers, leftBoundary and rightBoundary, both starting at the beginning of the array or string. You expand the window by moving rightBoundary forward, adding the new element into your window&#x27;s tracked state (often a frequency map or count). After each expansion, you check: does the window still satisfy the required condition? If yes, you might update your &#x27;best answer so far&#x27; (for longest-window problems). If the window has become invalid — for example, a character now appears twice when the problem requires uniqueness — you shrink the window from the left, removing elements one at a time and updating your state, until the window becomes valid again.</p>
+<p>This &#x27;expand right, shrink left when needed&#x27; rhythm guarantees that both pointers only ever move forward, never backward, which is what keeps the overall time complexity at O(n) even though it looks like nested logic. Each element is added to the window exactly once and removed at most once.</p>
+<p>A particularly elegant example is &#x27;Longest Substring Without Repeating Characters,&#x27; where you track the last-seen index of each character. When you encounter a character that&#x27;s already in the window, instead of shrinking one step at a time, you can jump leftBoundary directly past the duplicate&#x27;s previous position. For &#x27;minimum window substring&#x27; problems, you track how many required characters are currently satisfied, expanding until all requirements are met, then aggressively shrinking to find the smallest valid window before continuing to expand again. Recognize this pattern whenever the window size isn&#x27;t given upfront and instead must be discovered based on a validity condition.</p>
+<h2 id="how-it-works-visually-6">How it works — visually</h2>
+<figure><img src="../assets/img/09-leetcode-patterns-6.png" alt="Diagram"></figure>
+<h2 id="java-pseudocode-6">Java pseudocode</h2>
+<h3 id="longest-substring-without-repeating-characters-6">Longest Substring Without Repeating Characters <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/longest-substring-without-repeating-characters/" target="_blank" rel="noopener">Longest Substring Without Repeating Characters &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>Given a string inputText, find the length of the longest substring without repeating characters. Example: inputText = &quot;abcabcbb&quot; -&gt; answer is 3 (the substring &quot;abc&quot;).</div>
+<pre><code><span class="k">int</span> findLongestUniqueSubstring(<span class="t">String</span> inputText) {
+    <span class="c">// maps each character -&gt; the most recent index where it appeared</span>
+    <span class="t">Map</span>&lt;<span class="t">Character</span>, <span class="t">Integer</span>&gt; lastSeenIndexOf = <span class="k">new</span> <span class="t">HashMap</span>&lt;&gt;();
+    <span class="k">int</span> leftBoundary = <span class="n">0</span>;
+    <span class="k">int</span> longestLengthFound = <span class="n">0</span>;
+ 
+    <span class="k">for</span> (<span class="k">int</span> rightBoundary = <span class="n">0</span>; rightBoundary &lt; inputText.length(); rightBoundary++) {
+        <span class="k">char</span> currentCharacter = inputText.charAt(rightBoundary);
+ 
+        <span class="c">// if this character was already seen INSIDE the current window, shrink past it</span>
+        <span class="k">if</span> (lastSeenIndexOf.containsKey(currentCharacter)
+                &amp;&amp; lastSeenIndexOf.get(currentCharacter) &gt;= leftBoundary) {
+            leftBoundary = lastSeenIndexOf.get(currentCharacter) + <span class="n">1</span>;
+        }
+ 
+        lastSeenIndexOf.put(currentCharacter, rightBoundary);
+        longestLengthFound = <span class="t">Math</span>.max(longestLengthFound, rightBoundary - leftBoundary + <span class="n">1</span>);
+    }
+    <span class="k">return</span> longestLengthFound;
+}</code></pre>
+<h3 id="minimum-window-substring-6">Minimum Window Substring <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/minimum-window-substring/" target="_blank" rel="noopener">Minimum Window Substring &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>Given two strings sourceText and requiredChars, return the minimum window substring of sourceText such that every character in requiredChars (including duplicates) is included in the window. If there is no such substring, return the empty string. Example: sourceText = &quot;ADOBECODEBANC&quot;, requiredChars = &quot;ABC&quot; -&gt; answer is &quot;BANC&quot;.</div>
+<pre><code><span class="t">String</span> findMinimumWindowSubstring(<span class="t">String</span> sourceText, <span class="t">String</span> requiredChars) {
+    <span class="k">if</span> (requiredChars.isEmpty()) <span class="k">return</span> <span class="s">&quot;&quot;</span>;
+ 
+    <span class="c">// count how many of each character we still need</span>
+    <span class="t">Map</span>&lt;<span class="t">Character</span>, <span class="t">Integer</span>&gt; neededCharCounts = <span class="k">new</span> <span class="t">HashMap</span>&lt;&gt;();
+    <span class="k">for</span> (<span class="k">char</span> requiredChar : requiredChars.toCharArray()) {
+        neededCharCounts.merge(requiredChar, <span class="n">1</span>, <span class="t">Integer</span>::sum);
+    }
+ 
+    <span class="t">Map</span>&lt;<span class="t">Character</span>, <span class="t">Integer</span>&gt; currentWindowCounts = <span class="k">new</span> <span class="t">HashMap</span>&lt;&gt;();
+    <span class="k">int</span> leftBoundary = <span class="n">0</span>;
+    <span class="k">int</span> distinctCharsRequired = neededCharCounts.size();
+    <span class="k">int</span> distinctCharsSatisfied = <span class="n">0</span>;
+    <span class="k">int</span> shortestLengthFound = <span class="t">Integer</span>.<span class="t">MAX_VALUE</span>;
+    <span class="k">int</span> shortestWindowStart = <span class="n">0</span>;
+ 
+    <span class="k">for</span> (<span class="k">int</span> rightBoundary = <span class="n">0</span>; rightBoundary &lt; sourceText.length(); rightBoundary++) {
+        <span class="k">char</span> incomingChar = sourceText.charAt(rightBoundary);
+        currentWindowCounts.merge(incomingChar, <span class="n">1</span>, <span class="t">Integer</span>::sum);
+ 
+        <span class="c">// this character&#x27;s requirement is now exactly satisfied</span>
+        <span class="k">if</span> (neededCharCounts.containsKey(incomingChar)
+                &amp;&amp; currentWindowCounts.get(incomingChar).intValue() == neededCharCounts.get(incomingChar).intValue()) {
+            distinctCharsSatisfied++;
+        }
+ 
+        <span class="c">// once ALL required characters are satisfied, shrink from the left to find the smallest valid window</span>
+        <span class="k">while</span> (distinctCharsSatisfied == distinctCharsRequired) {
+            <span class="k">if</span> (rightBoundary - leftBoundary + <span class="n">1</span> &lt; shortestLengthFound) {
+                shortestLengthFound = rightBoundary - leftBoundary + <span class="n">1</span>;
+                shortestWindowStart = leftBoundary;
+            }
+            <span class="k">char</span> outgoingChar = sourceText.charAt(leftBoundary);
+            currentWindowCounts.put(outgoingChar, currentWindowCounts.get(outgoingChar) - <span class="n">1</span>);
+            <span class="k">if</span> (neededCharCounts.containsKey(outgoingChar)
+                    &amp;&amp; currentWindowCounts.get(outgoingChar) &lt; neededCharCounts.get(outgoingChar)) {
+                distinctCharsSatisfied--; <span class="c">// window no longer satisfies this character&#x27;s requirement</span>
+            }
+            leftBoundary++;
+        }
+    }
+    <span class="k">return</span> shortestLengthFound == <span class="t">Integer</span>.<span class="t">MAX_VALUE</span> ? <span class="s">&quot;&quot;</span> :
+        sourceText.substring(shortestWindowStart, shortestWindowStart + shortestLengthFound);
+}</code></pre>
+<p>Practice: Longest Substring Without Repeating Characters, Longest Repeating Character Replacement, Minimum Window Substring, Permutation in String.</p>
+<h1 id="7-binary-search-on-arrays-6">7. Binary Search (on Arrays)</h1>
+<p>Binary search is the classic technique for finding a target value in a sorted array in O(log n) time by repeatedly cutting the search space in half. Where a linear scan checks every element one by one (O(n)), binary search leverages the sorted property to eliminate half of the remaining candidates with every single comparison, which is why it scales so well even for enormous arrays.</p>
+<p>The mechanism uses two boundary pointers, leftBoundary and rightBoundary, marking the current range being searched, and computes a midpoint between them. You compare the value at the midpoint to your target: if they&#x27;re equal, you&#x27;re done. If the midpoint&#x27;s value is smaller than the target, you know the entire left half (including the midpoint) can be discarded, since everything there is even smaller — so you move leftBoundary to just past the midpoint. If the midpoint&#x27;s value is larger, symmetric logic applies and you shrink rightBoundary. This process repeats, roughly halving the search space every iteration, until the target is found or the range becomes empty.</p>
+<p>A common and important variation is searching a rotated sorted array, where the array was sorted but then rotated at some unknown pivot (e.g., [4,5,6,7,0,1,2]). The array is no longer globally sorted, but at every step, at least one half of the current range IS guaranteed to be properly sorted. The trick is to first determine which half is sorted by comparing the endpoints, and then check whether the target could plausibly lie within that sorted half&#x27;s range. If it does, search there; otherwise, search the other half.</p>
+<p>Binary search also generalizes to finding boundaries rather than exact matches — for example, &#x27;find the first and last position of a target in a sorted array&#x27; runs two separate binary searches, one biased to keep searching left after finding a match (to find the first occurrence) and one biased to keep searching right (to find the last). Recognize binary search whenever the data is sorted, or when a monotonic &#x27;yes/no&#x27; property lets you meaningfully discard half the search space at each step.</p>
+<h2 id="how-it-works-visually-7">How it works — visually</h2>
+<figure><img src="../assets/img/09-leetcode-patterns-7.png" alt="Diagram"></figure>
+<h2 id="java-pseudocode-7">Java pseudocode</h2>
+<h3 id="standard-binary-search-7">Standard Binary Search <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/binary-search/" target="_blank" rel="noopener">Binary Search &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>Given an array of integers sortedNumbers sorted in ascending order, and an integer targetValue, write a function to search targetValue. If it exists, return its index. Otherwise, return -1. Example: sortedNumbers = [-1,0,3,5,9,12], targetValue = 9 -&gt; answer is 4.</div>
+<pre><code><span class="k">int</span> searchSortedArray(<span class="k">int</span>[] sortedNumbers, <span class="k">int</span> targetValue) {
+    <span class="k">int</span> leftBoundary = <span class="n">0</span>;
+    <span class="k">int</span> rightBoundary = sortedNumbers.length - <span class="n">1</span>;
+ 
+    <span class="k">while</span> (leftBoundary &lt;= rightBoundary) {
+        <span class="k">int</span> midpointIndex = leftBoundary + (rightBoundary - leftBoundary) / <span class="n">2</span>;
+ 
+        <span class="k">if</span> (sortedNumbers[midpointIndex] == targetValue) {
+            <span class="k">return</span> midpointIndex; <span class="c">// found it</span>
+        } <span class="k">else</span> <span class="k">if</span> (sortedNumbers[midpointIndex] &lt; targetValue) {
+            leftBoundary = midpointIndex + <span class="n">1</span>;  <span class="c">// discard the left half, it&#x27;s too small</span>
+        } <span class="k">else</span> {
+            rightBoundary = midpointIndex - <span class="n">1</span>; <span class="c">// discard the right half, it&#x27;s too big</span>
+        }
+    }
+    <span class="k">return</span> -<span class="n">1</span>; <span class="c">// target not present</span>
+}</code></pre>
+<h3 id="search-in-rotated-sorted-array-7">Search in Rotated Sorted Array <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/search-in-rotated-sorted-array/" target="_blank" rel="noopener">Search In Rotated Sorted Array &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>There is an integer array rotatedNumbers sorted in ascending order (with distinct values), possibly rotated at an unknown pivot. Given the array and a target value targetValue, return the index of targetValue if it is in the array, or -1 if not. Example: rotatedNumbers = [4,5,6,7,0,1,2], targetValue = 0 -&gt; answer is 4.</div>
+<pre><code><span class="k">int</span> searchRotatedArray(<span class="k">int</span>[] rotatedNumbers, <span class="k">int</span> targetValue) {
+    <span class="k">int</span> leftBoundary = <span class="n">0</span>;
+    <span class="k">int</span> rightBoundary = rotatedNumbers.length - <span class="n">1</span>;
+ 
+    <span class="k">while</span> (leftBoundary &lt;= rightBoundary) {
+        <span class="k">int</span> midpointIndex = leftBoundary + (rightBoundary - leftBoundary) / <span class="n">2</span>;
+ 
+        <span class="k">if</span> (rotatedNumbers[midpointIndex] == targetValue) {
+            <span class="k">return</span> midpointIndex;
+        }
+ 
+        <span class="c">// determine which half is properly sorted</span>
+        <span class="k">if</span> (rotatedNumbers[leftBoundary] &lt;= rotatedNumbers[midpointIndex]) {
+            <span class="c">// left half [leftBoundary..midpointIndex] is sorted</span>
+            <span class="k">if</span> (rotatedNumbers[leftBoundary] &lt;= targetValue &amp;&amp; targetValue &lt; rotatedNumbers[midpointIndex]) {
+                rightBoundary = midpointIndex - <span class="n">1</span>; <span class="c">// target is in the sorted left half</span>
+            } <span class="k">else</span> {
+                leftBoundary = midpointIndex + <span class="n">1</span>;  <span class="c">// target must be in the right half</span>
+            }
+        } <span class="k">else</span> {
+            <span class="c">// right half [midpointIndex..rightBoundary] is sorted</span>
+            <span class="k">if</span> (rotatedNumbers[midpointIndex] &lt; targetValue &amp;&amp; targetValue &lt;= rotatedNumbers[rightBoundary]) {
+                leftBoundary = midpointIndex + <span class="n">1</span>;  <span class="c">// target is in the sorted right half</span>
+            } <span class="k">else</span> {
+                rightBoundary = midpointIndex - <span class="n">1</span>; <span class="c">// target must be in the left half</span>
+            }
+        }
+    }
+    <span class="k">return</span> -<span class="n">1</span>;
+}</code></pre>
+<p>Practice: Binary Search, Search in Rotated Sorted Array, Find First and Last Position, Find Peak Element.</p>
+<h1 id="8-kadane-s-algorithm-maximum-subarray-7">8. Kadane&#x27;s Algorithm (Maximum Subarray)</h1>
+<p>Kadane&#x27;s Algorithm is a dynamic programming technique that finds the maximum-sum contiguous subarray in a single linear pass. It solves a problem that looks like it should require checking every possible subarray — an O(n^2) or worse approach — in just O(n) time by making one clever local decision at each step.</p>
+<p>The insight behind Kadane&#x27;s is this: as you walk through the array, you maintain a running variable representing &#x27;the best sum of a subarray that ends exactly at the current position.&#x27; At each new element, you have exactly two choices: either extend the previous subarray by including this new element, or abandon everything before it and start a brand new subarray beginning right here. You choose whichever option gives the larger sum. Mathematically, this is expressed as bestSumEndingHere = max(currentElement, bestSumEndingHere + currentElement). The intuition is that if everything accumulated so far is dragging your sum down (i.e., it&#x27;s negative), you&#x27;re better off cutting your losses and starting fresh.</p>
+<p>While you&#x27;re computing this local &#x27;best ending here&#x27; value at each step, you also keep track of the global maximum seen across the entire traversal, since the overall best subarray might not be the one that happens to end at the very last index.</p>
+<p>This same core idea extends naturally to related problems. For &#x27;maximum product subarray,&#x27; you need to track both the running maximum AND running minimum, because multiplying by a negative number can flip a very negative product into the new maximum. For &#x27;best time to buy and sell stock,&#x27; the pattern becomes tracking the minimum price seen so far and computing the best possible profit if you sold today — which is a disguised version of the same &#x27;extend or restart&#x27; logic. Recognize Kadane&#x27;s whenever a problem asks for an optimal contiguous run, streak, or window derived from array values, and a brute-force check of every subarray would be too slow.</p>
+<h2 id="how-it-works-visually-8">How it works — visually</h2>
+<figure><img src="../assets/img/09-leetcode-patterns-8.png" alt="Diagram"></figure>
+<h2 id="java-pseudocode-8">Java pseudocode</h2>
+<h3 id="best-time-to-buy-and-sell-stock-8">Best Time to Buy and Sell Stock <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/best-time-to-buy-and-sell-stock/" target="_blank" rel="noopener">Best Time To Buy And Sell Stock &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>You are given an array dailyPrices where dailyPrices[i] is the price of a stock on day i. You want to maximize profit by choosing a single day to buy and a different later day to sell. Return the maximum profit achievable, or 0 if no profit is possible. Example: dailyPrices = [7,1,5,3,6,4] -&gt; answer is 5.</div>
+<pre><code><span class="k">int</span> findMaxStockProfit(<span class="k">int</span>[] dailyPrices) {
+    <span class="k">int</span> lowestPriceSoFar = dailyPrices[<span class="n">0</span>];
+    <span class="k">int</span> bestProfitSoFar = <span class="n">0</span>;
+ 
+    <span class="k">for</span> (<span class="k">int</span> currentPrice : dailyPrices) {
+        lowestPriceSoFar = <span class="t">Math</span>.min(lowestPriceSoFar, currentPrice);
+        bestProfitSoFar = <span class="t">Math</span>.max(bestProfitSoFar, currentPrice - lowestPriceSoFar);
+    }
+    <span class="k">return</span> bestProfitSoFar;
+}</code></pre>
+<p>Practice: Maximum Subarray, Maximum Sum Circular Subarray, Maximum Product Subarray, Best Time to Buy and Sell Stock.</p>
+<h1 id="9-merge-intervals-8">9. Merge Intervals</h1>
+<p>The merge intervals pattern handles any problem involving ranges that might overlap — scheduling meetings, merging time blocks, or inserting a new range into an existing set. The technique relies on a simple but crucial first step: sorting the intervals by their start time. Once sorted, you can determine overlaps with a single linear sweep, rather than comparing every pair of intervals against each other.</p>
+<p>After sorting, you walk through the intervals one at a time, maintaining a &#x27;currently merged&#x27; interval. For each new interval, you compare its start time to the end time of the last merged interval. If the new interval&#x27;s start is less than or equal to the last merged interval&#x27;s end, they overlap (or touch), so you merge them by extending the end time to whichever is larger. If the new interval&#x27;s start comes strictly after the last merged interval&#x27;s end, there&#x27;s a gap — meaning no overlap — so you close off the previous merged interval and begin a new one with the current interval.</p>
+<p>A related but distinct problem is &#x27;Non-overlapping Intervals,&#x27; which asks for the minimum number of intervals to remove so that none of the remaining ones overlap. Here, the greedy insight is to sort by END time instead of start time, and greedily keep an interval whenever it starts at or after the end of the last interval you decided to keep. Any interval that would overlap gets counted as a removal. Sorting by end time (rather than start time) is what makes the greedy choice provably optimal here — you always want to keep the interval that frees up the earliest possible time for future intervals.</p>
+<p>&#x27;Meeting Rooms II,&#x27; which asks for the minimum number of conference rooms needed to host all given meetings without conflict, uses a clever variant: separate the start times and end times into two independently sorted arrays, then sweep through them together. Every time a meeting starts before the earliest currently-ongoing meeting ends, you need an additional room; every time a meeting ends, you free up a room. Tracking the maximum simultaneous room count gives the answer. Recognize the merge intervals pattern whenever a problem&#x27;s core objects are ranges (start, end) and questions concern their overlap, union, or resource conflicts.</p>
+<h2 id="how-it-works-visually-9">How it works — visually</h2>
+<figure><img src="../assets/img/09-leetcode-patterns-9.png" alt="Diagram"></figure>
+<h2 id="java-pseudocode-9">Java pseudocode</h2>
+<h3 id="merge-intervals-9">Merge Intervals <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/merge-intervals/" target="_blank" rel="noopener">Merge Intervals &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>Given an array of intervals inputIntervals where inputIntervals[i] = [startTime, endTime], merge all overlapping intervals and return an array of the non-overlapping intervals that cover all the intervals in the input. Example: inputIntervals = [[1,3],[2,6],[8,10],[15,18]] -&gt; answer is [[1,6],[8,10],[15,18]].</div>
+<pre><code><span class="k">int</span>[][] mergeOverlappingIntervals(<span class="k">int</span>[][] inputIntervals) {
+    <span class="c">// sort by start time so overlaps can be found with a single linear sweep</span>
+    <span class="t">Arrays</span>.sort(inputIntervals, (firstInterval, secondInterval) -&gt; firstInterval[<span class="n">0</span>] - secondInterval[<span class="n">0</span>]);
+ 
+    <span class="t">List</span>&lt;<span class="k">int</span>[]&gt; mergedIntervals = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
+ 
+    <span class="k">for</span> (<span class="k">int</span>[] currentInterval : inputIntervals) {
+        <span class="k">int</span> lastMergedIndex = mergedIntervals.size() - <span class="n">1</span>;
+ 
+        <span class="k">if</span> (mergedIntervals.isEmpty() || mergedIntervals.get(lastMergedIndex)[<span class="n">1</span>] &lt; currentInterval[<span class="n">0</span>]) {
+            <span class="c">// no overlap with the last merged interval -&gt; start a new group</span>
+            mergedIntervals.add(currentInterval);
+        } <span class="k">else</span> {
+            <span class="c">// overlaps -&gt; extend the last merged interval&#x27;s end time if needed</span>
+            mergedIntervals.get(lastMergedIndex)[<span class="n">1</span>] =
+                <span class="t">Math</span>.max(mergedIntervals.get(lastMergedIndex)[<span class="n">1</span>], currentInterval[<span class="n">1</span>]);
+        }
+    }
+    <span class="k">return</span> mergedIntervals.toArray(<span class="k">new</span> <span class="k">int</span>[mergedIntervals.size()][]);
+}</code></pre>
+<h3 id="meeting-rooms-ii-9">Meeting Rooms II <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/meeting-rooms-ii/" target="_blank" rel="noopener">Meeting Rooms Ii &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>Given an array of meeting time intervals meetingIntervals where meetingIntervals[i] = [startTime, endTime], return the minimum number of conference rooms required to hold all the meetings. Example: meetingIntervals = [[0,30],[5,10],[15,20]] -&gt; answer is 2.</div>
+<pre><code><span class="k">int</span> findMinimumMeetingRooms(<span class="k">int</span>[][] meetingIntervals) {
+    <span class="k">int</span> meetingCount = meetingIntervals.length;
+    <span class="k">int</span>[] sortedStartTimes = <span class="k">new</span> <span class="k">int</span>[meetingCount];
+    <span class="k">int</span>[] sortedEndTimes = <span class="k">new</span> <span class="k">int</span>[meetingCount];
+ 
+    <span class="k">for</span> (<span class="k">int</span> index = <span class="n">0</span>; index &lt; meetingCount; index++) {
+        sortedStartTimes[index] = meetingIntervals[index][<span class="n">0</span>];
+        sortedEndTimes[index] = meetingIntervals[index][<span class="n">1</span>];
+    }
+    <span class="t">Arrays</span>.sort(sortedStartTimes);
+    <span class="t">Arrays</span>.sort(sortedEndTimes);
+ 
+    <span class="k">int</span> roomsInUse = <span class="n">0</span>;
+    <span class="k">int</span> maxRoomsNeeded = <span class="n">0</span>;
+    <span class="k">int</span> endTimePointer = <span class="n">0</span>;
+ 
+    <span class="k">for</span> (<span class="k">int</span> startPointer = <span class="n">0</span>; startPointer &lt; meetingCount; startPointer++) {
+        <span class="k">if</span> (sortedStartTimes[startPointer] &lt; sortedEndTimes[endTimePointer]) {
+            <span class="c">// a new meeting starts before the earliest ongoing meeting ends -&gt; need another room</span>
+            roomsInUse++;
+        } <span class="k">else</span> {
+            <span class="c">// the earliest ongoing meeting has ended -&gt; free up a room</span>
+            roomsInUse--;
+            endTimePointer++;
+        }
+        maxRoomsNeeded = <span class="t">Math</span>.max(maxRoomsNeeded, roomsInUse);
+    }
+    <span class="k">return</span> maxRoomsNeeded;
+}</code></pre>
+<p>Practice: Merge Intervals, Insert Interval, Non-overlapping Intervals, Meeting Rooms II.</p>
+<h1 id="10-monotonic-stack-9">10. Monotonic Stack</h1>
+<p>A monotonic stack is a stack that maintains its elements in strictly increasing or strictly decreasing order at all times, by popping off elements that would violate this order before pushing new ones. This structure is the standard tool for any problem asking about the &#x27;next greater element,&#x27; &#x27;next smaller element,&#x27; or similar boundary-finding questions, and it solves them in O(n) total time even though it might look like it involves nested loops.</p>
+<p>Here&#x27;s why it&#x27;s O(n) despite the appearance of a loop inside a loop: although you might pop multiple elements at a single step, each element is pushed onto the stack exactly once and popped at most once across the entire algorithm. So the total number of push and pop operations across the whole run is bounded by 2n, not n squared.</p>
+<p>The mechanism works like this: you iterate through the array. Before pushing the current element onto the stack, you check whether it violates monotonicity with the current top of the stack — for a &#x27;next greater element&#x27; problem, this means checking if the current element is bigger than the element at the top of the stack. If it is, you pop that top element, because you&#x27;ve just found its answer: the current element is precisely the &#x27;next greater element&#x27; it was looking for. You keep popping and recording answers until the stack&#x27;s top no longer violates the order, then you push the current element and continue.</p>
+<p>This same idea extends to more complex geometric problems like &#x27;Largest Rectangle in Histogram,&#x27; where you maintain a stack of increasing bar heights. When you encounter a bar shorter than the stack&#x27;s top, you know the top bar&#x27;s rectangle can&#x27;t extend any further right, so you pop it and calculate the maximum rectangle it could have formed, using the new stack top as the left boundary. Recognize the monotonic stack pattern whenever a problem involves finding the nearest bigger or smaller element (in either direction) efficiently, or computing areas/spans bounded by such elements.</p>
+<h2 id="how-it-works-visually-10">How it works — visually</h2>
+<figure><img src="../assets/img/09-leetcode-patterns-10.png" alt="Diagram"></figure>
+<h2 id="java-pseudocode-10">Java pseudocode</h2>
+<h3 id="daily-temperatures-10">Daily Temperatures <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/daily-temperatures/" target="_blank" rel="noopener">Daily Temperatures &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>Given an array of integers dailyTemperatures representing daily temperatures, return an array answerDays such that answerDays[i] is the number of days you have to wait after day i to get a warmer temperature. If there is no future day for which this is possible, put 0. Example: dailyTemperatures = [73,74,75,71,69,72,76,73] -&gt; answer is [1,1,4,2,1,1,0,0].</div>
+<pre><code><span class="k">int</span>[] findDaysUntilWarmer(<span class="k">int</span>[] dailyTemperatures) {
+    <span class="k">int</span> totalDays = dailyTemperatures.length;
+    <span class="k">int</span>[] daysToWaitResult = <span class="k">new</span> <span class="k">int</span>[totalDays];
+ 
+    <span class="c">// stack holds indices of days whose &quot;warmer day&quot; hasn&#x27;t been found yet</span>
+    <span class="c">// (temperatures at these indices are in decreasing order from bottom to top)</span>
+    <span class="t">Deque</span>&lt;<span class="t">Integer</span>&gt; decreasingTempStack = <span class="k">new</span> <span class="t">ArrayDeque</span>&lt;&gt;();
+ 
+    <span class="k">for</span> (<span class="k">int</span> currentDay = <span class="n">0</span>; currentDay &lt; totalDays; currentDay++) {
+        <span class="c">// pop and resolve any earlier day that is colder than today</span>
+        <span class="k">while</span> (!decreasingTempStack.isEmpty()
+                &amp;&amp; dailyTemperatures[currentDay] &gt; dailyTemperatures[decreasingTempStack.peek()]) {
+            <span class="k">int</span> previousColderDay = decreasingTempStack.pop();
+            daysToWaitResult[previousColderDay] = currentDay - previousColderDay;
+        }
+        decreasingTempStack.push(currentDay);
+    }
+    <span class="k">return</span> daysToWaitResult;
+}</code></pre>
+<h3 id="largest-rectangle-in-histogram-10">Largest Rectangle in Histogram <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/largest-rectangle-in-histogram/" target="_blank" rel="noopener">Largest Rectangle In Histogram &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>Given an array of integers barHeights representing the histogram&#x27;s bar heights where the width of each bar is 1, return the area of the largest rectangle in the histogram. Example: barHeights = [2,1,5,6,2,3] -&gt; answer is 10.</div>
+<pre><code><span class="k">int</span> findLargestRectangleArea(<span class="k">int</span>[] barHeights) {
+    <span class="t">Deque</span>&lt;<span class="t">Integer</span>&gt; increasingHeightStack = <span class="k">new</span> <span class="t">ArrayDeque</span>&lt;&gt;(); <span class="c">// stores indices, increasing heights</span>
+    <span class="k">int</span> largestAreaFound = <span class="n">0</span>;
+    <span class="k">int</span> totalBars = barHeights.length;
+ 
+    <span class="k">for</span> (<span class="k">int</span> currentIndex = <span class="n">0</span>; currentIndex &lt;= totalBars; currentIndex++) {
+        <span class="c">// use height 0 as a sentinel at the end to flush out remaining bars</span>
+        <span class="k">int</span> currentHeight = (currentIndex == totalBars) ? <span class="n">0</span> : barHeights[currentIndex];
+ 
+        <span class="k">while</span> (!increasingHeightStack.isEmpty() &amp;&amp; barHeights[increasingHeightStack.peek()] &gt; currentHeight) {
+            <span class="k">int</span> poppedBarHeight = barHeights[increasingHeightStack.pop()];
+            <span class="c">// width extends from the new stack top (exclusive) to currentIndex (exclusive)</span>
+            <span class="k">int</span> rectangleWidth = increasingHeightStack.isEmpty()
+                ? currentIndex
+                : currentIndex - increasingHeightStack.peek() - <span class="n">1</span>;
+            largestAreaFound = <span class="t">Math</span>.max(largestAreaFound, poppedBarHeight * rectangleWidth);
+        }
+        increasingHeightStack.push(currentIndex);
+    }
+    <span class="k">return</span> largestAreaFound;
+}</code></pre>
+<p>Practice: Next Greater Element I, Daily Temperatures, Largest Rectangle in Histogram, Remove K Digits.</p>
+<h1 id="11-cyclic-sort-10">11. Cyclic Sort</h1>
+<p>Cyclic Sort is a specialized in-place sorting technique that applies when you&#x27;re given an array containing numbers in a known, limited range — typically 1 to n, or 0 to n-1, matching the array&#x27;s own length. Rather than using a general-purpose sort like quicksort or mergesort (which take O(n log n)), cyclic sort exploits the fact that you already know exactly where each number SHOULD go, letting you sort the array in O(n) time using only a single pass with swaps.</p>
+<p>The core idea: if the array is supposed to contain numbers 1 through n, then the number &#x27;v&#x27; belongs at index &#x27;v-1&#x27; (adjusting for 0-based indexing). So you walk through the array with an index, and at each position, you check whether the number currently sitting there is actually the correct number for that position. If it&#x27;s not, you swap it directly to the index where IT belongs, and then re-check the new number that just landed at the current position (since a swap could put yet another out-of-place number there). You only move forward once the number at the current position is confirmed correct. This &#x27;keep swapping until this slot is right, then move on&#x27; logic guarantees that every swap places at least one number into its final correct position, which bounds the total number of swaps at O(n).</p>
+<p>This pattern is especially powerful for a family of &#x27;missing number&#x27; and &#x27;duplicate number&#x27; problems. Once the array has been cyclically sorted (or as close to sorted as possible given missing/duplicate values), a single additional linear scan reveals the answer: any index where the value doesn&#x27;t equal index+1 tells you that index+1 is a missing number, or that the value there is a number appearing more than once (since its rightful spot got overwritten or was never reached).</p>
+<p>Recognize cyclic sort whenever a problem gives you an array with values constrained to a specific range tied to the array&#x27;s length (1 to n, 0 to n-1, etc.) and asks you to find a missing number, a duplicate number, or all missing/duplicate numbers — especially when the problem also asks for O(n) time and O(1) extra space.</p>
+<h2 id="how-it-works-visually-11">How it works — visually</h2>
+<figure><img src="../assets/img/09-leetcode-patterns-11.png" alt="Diagram"></figure>
+<h2 id="java-pseudocode-11">Java pseudocode</h2>
+<h3 id="cyclic-sort-core-template-11">Cyclic Sort (core template)</h3>
+<div class="callout"><strong>Problem: </strong>Given an array inputNumbers containing n distinct numbers taken from the range 1 to n, rearrange the array in-place so that inputNumbers[i] == i + 1 for every valid index. Example: inputNumbers = [3,1,5,4,2] -&gt; after sorting: [1,2,3,4,5].</div>
+<pre><code><span class="k">void</span> performCyclicSort(<span class="k">int</span>[] inputNumbers) {
+    <span class="k">int</span> currentIndex = <span class="n">0</span>;
+ 
+    <span class="k">while</span> (currentIndex &lt; inputNumbers.length) {
+        <span class="c">// the number at currentIndex &quot;belongs&quot; at index (value - 1)</span>
+        <span class="k">int</span> correctPositionForValue = inputNumbers[currentIndex] - <span class="n">1</span>;
+ 
+        <span class="k">if</span> (inputNumbers[currentIndex] != inputNumbers[correctPositionForValue]) {
+            <span class="c">// wrong number here -&gt; swap it to where it belongs, then re-check this slot</span>
+            swapArrayValues(inputNumbers, currentIndex, correctPositionForValue);
+        } <span class="k">else</span> {
+            currentIndex++; <span class="c">// this slot already holds its correct value, move forward</span>
+        }
+    }
+}
+ 
+<span class="k">void</span> swapArrayValues(<span class="k">int</span>[] inputNumbers, <span class="k">int</span> firstIndex, <span class="k">int</span> secondIndex) {
+    <span class="k">int</span> temporaryValue = inputNumbers[firstIndex];
+    inputNumbers[firstIndex] = inputNumbers[secondIndex];
+    inputNumbers[secondIndex] = temporaryValue;
+}</code></pre>
+<h3 id="find-the-missing-number-0-to-n-11">Find the Missing Number (0 to n) <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/missing-number/" target="_blank" rel="noopener">Missing Number &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>Given an array inputNumbers containing n distinct numbers taken from the range 0 to n, find the one number in that range that is missing from the array. Example: inputNumbers = [3,0,1] -&gt; answer is 2.</div>
+<pre><code><span class="k">int</span> findMissingNumber(<span class="k">int</span>[] inputNumbers) {
+    <span class="k">int</span> currentIndex = <span class="n">0</span>;
+    <span class="k">int</span> totalCount = inputNumbers.length;
+ 
+    <span class="k">while</span> (currentIndex &lt; totalCount) {
+        <span class="k">int</span> correctPositionForValue = inputNumbers[currentIndex];
+        <span class="c">// only swap if the value belongs inside the array&#x27;s index range</span>
+        <span class="k">if</span> (inputNumbers[currentIndex] &lt; totalCount
+                &amp;&amp; inputNumbers[currentIndex] != inputNumbers[correctPositionForValue]) {
+            swapArrayValues(inputNumbers, currentIndex, correctPositionForValue);
+        } <span class="k">else</span> {
+            currentIndex++;
+        }
+    }
+ 
+    <span class="c">// scan for the first index whose value doesn&#x27;t match -&gt; that index is the missing number</span>
+    <span class="k">for</span> (currentIndex = <span class="n">0</span>; currentIndex &lt; totalCount; currentIndex++) {
+        <span class="k">if</span> (inputNumbers[currentIndex] != currentIndex) {
+            <span class="k">return</span> currentIndex;
+        }
+    }
+    <span class="k">return</span> totalCount; <span class="c">// all of 0..n-1 present, so n itself must be missing</span>
+}
+ 
+<span class="k">void</span> swapArrayValues(<span class="k">int</span>[] inputNumbers, <span class="k">int</span> firstIndex, <span class="k">int</span> secondIndex) {
+    <span class="k">int</span> temporaryValue = inputNumbers[firstIndex];
+    inputNumbers[firstIndex] = inputNumbers[secondIndex];
+    inputNumbers[secondIndex] = temporaryValue;
+}</code></pre>
+<p>Practice: Missing Number, Find All Numbers Disappeared in an Array, Find the Duplicate Number, First Missing Positive.</p>
+<h1 id="12-heap-priority-queue-11">12. Heap / Priority Queue</h1>
+<p>A heap (implemented in Java as PriorityQueue) is a specialized tree-based data structure that always keeps the smallest (min-heap) or largest (max-heap) element instantly accessible at the top, while still allowing efficient insertion and removal in O(log n) time. This makes it the ideal tool for any problem involving &#x27;top K&#x27; elements, streaming data, or repeatedly needing the current minimum or maximum as the dataset changes.</p>
+<p>Java&#x27;s PriorityQueue is a min-heap by default, meaning poll() always returns the smallest element currently in the queue. For &#x27;top K largest&#x27; style problems, a clever trick is to maintain a min-heap that&#x27;s capped at size K. As you process each new element, you add it to the heap; if the heap now exceeds size K, you remove (poll) the smallest element. Because the heap&#x27;s smallest element gets evicted whenever the heap grows too large, only the K largest elements seen so far can possibly remain in the heap at any point. This means the heap never needs to hold more than K elements at once, keeping both time and space efficient — O(n log k) instead of O(n log n) for a full sort.</p>
+<p>For &#x27;Kth Largest Element in an Array,&#x27; this same size-K min-heap trick applies directly: after processing every element, the smallest item remaining in the heap (i.e., the top of the min-heap) is exactly the Kth largest element overall, since the heap holds precisely the K largest values and the smallest among them is, by definition, the Kth largest.</p>
+<p>A more advanced application is &#x27;Find Median from Data Stream,&#x27; which uses two heaps simultaneously: a max-heap holding the smaller half of all numbers seen so far, and a min-heap holding the larger half. By carefully rebalancing after every insertion so the two halves stay equal in size (or off by one), the median is always immediately available as either the top of the larger half, or the average of both tops. Recognize the heap pattern whenever a problem needs repeated access to a running minimum/maximum, or needs the K best/worst elements from a stream or large collection.</p>
+<h2 id="how-it-works-visually-12">How it works — visually</h2>
+<figure><img src="../assets/img/09-leetcode-patterns-12.png" alt="Diagram"></figure>
+<h2 id="java-pseudocode-12">Java pseudocode</h2>
+<h3 id="merge-k-sorted-lists-12">Merge K Sorted Lists <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/merge-k-sorted-lists/" target="_blank" rel="noopener">Merge K Sorted Lists &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>You are given an array sortedLists of k linked lists, each sorted in ascending order. Merge all the linked lists into one sorted linked list and return it. Example: sortedLists = [[1,4,5],[1,3,4],[2,6]] -&gt; answer is [1,1,2,3,4,4,5,6].</div>
+<pre><code><span class="t">ListNode</span> mergeSortedLists(<span class="t">ListNode</span>[] sortedLists) {
+    <span class="c">// min-heap ordered by node value, so poll() always returns the smallest current head</span>
+    <span class="t">PriorityQueue</span>&lt;<span class="t">ListNode</span>&gt; smallestHeadHeap = <span class="k">new</span> <span class="t">PriorityQueue</span>&lt;&gt;(
+        (firstNode, secondNode) -&gt; firstNode.val - secondNode.val);
+ 
+    <span class="k">for</span> (<span class="t">ListNode</span> listHead : sortedLists) {
+        <span class="k">if</span> (listHead != <span class="k">null</span>) smallestHeadHeap.offer(listHead);
+    }
+ 
+    <span class="t">ListNode</span> dummyHead = <span class="k">new</span> <span class="t">ListNode</span>(-<span class="n">1</span>);
+    <span class="t">ListNode</span> mergedTail = dummyHead;
+ 
+    <span class="k">while</span> (!smallestHeadHeap.isEmpty()) {
+        <span class="t">ListNode</span> smallestNode = smallestHeadHeap.poll();
+        mergedTail.next = smallestNode;
+        mergedTail = mergedTail.next;
+ 
+        <span class="c">// push the next node from the same list back into the heap</span>
+        <span class="k">if</span> (smallestNode.next != <span class="k">null</span>) smallestHeadHeap.offer(smallestNode.next);
+    }
+    <span class="k">return</span> dummyHead.next;
+}</code></pre>
+<p>Practice: Kth Largest Element, Top K Frequent Elements, Merge K Sorted Lists, Find Median from Data Stream.</p>
+<h1 id="13-binary-search-on-answer-solution-space-12">13. Binary Search on Answer (Solution Space)</h1>
+<p>This is a more advanced and often surprising application of binary search: instead of searching through an array, you binary search over the range of possible answers to the problem itself. This applies whenever a problem asks you to &#x27;minimize the maximum&#x27; or &#x27;maximize the minimum&#x27; of some quantity, and you can write a yes/no feasibility check for any candidate answer.</p>
+<p>The key requirement for this pattern to work is monotonicity: the feasibility of a candidate answer must be a one-directional property. That is, if a certain value X &#x27;works&#x27; (satisfies the constraints), then every value bigger than X (or smaller, depending on the problem) must also work. This monotonic structure is exactly what lets you safely discard half of the candidate answers at each step, just like discarding half of a sorted array in classic binary search.</p>
+<p>Consider &#x27;Koko Eating Bananas&#x27;: Koko needs to eat all the bananas within a limited number of hours, and you want to find the minimum eating speed that allows this. The search space isn&#x27;t the array of banana piles — it&#x27;s the range of possible eating speeds, from 1 up to the largest pile size. For any candidate speed, you can write a feasibility function: calculate how many hours it would take to eat every pile at that speed (using ceiling division per pile), and check if that&#x27;s within the allowed hours. If a speed of X works, any speed faster than X will also work (monotonic), so you binary search on speed itself, narrowing toward the minimum working value.</p>
+<p>The general template is: set &#x27;low&#x27; and &#x27;high&#x27; to the smallest and largest plausible answers. While low is less than high, compute mid, and run your feasibility check on it. If mid works, you try to find something even better by moving &#x27;high&#x27; down to mid (assuming you&#x27;re minimizing). If it doesn&#x27;t work, you know you need to search higher, so move &#x27;low&#x27; up past mid. When low equals high, you&#x27;ve converged on the answer. This pattern appears in shipping capacity problems, allocation problems, and any &#x27;minimum viable threshold&#x27; question with a checkable, monotonic condition.</p>
+<h2 id="how-it-works-visually-13">How it works — visually</h2>
+<figure><img src="../assets/img/09-leetcode-patterns-13.png" alt="Diagram"></figure>
+<h2 id="java-pseudocode-13">Java pseudocode</h2>
+<h3 id="koko-eating-bananas-13">Koko Eating Bananas <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/koko-eating-bananas/" target="_blank" rel="noopener">Koko Eating Bananas &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>Koko loves bananas. There are bananaPiles piles, and the guards will return in hoursAvailable hours. Koko decides her eating speed, bananasPerHour. Each hour, she chooses a pile and eats bananasPerHour bananas from it. Find the minimum integer bananasPerHour such that she can eat all bananas within hoursAvailable hours. Example: bananaPiles = [3,6,7,11], hoursAvailable = 8 -&gt; answer is 4.</div>
+<pre><code><span class="k">int</span> findMinimumEatingSpeed(<span class="k">int</span>[] bananaPiles, <span class="k">int</span> hoursAvailable) {
+    <span class="k">int</span> slowestPossibleSpeed = <span class="n">1</span>;
+    <span class="k">int</span> fastestPossibleSpeed = <span class="t">Arrays</span>.stream(bananaPiles).max().getAsInt();
+ 
+    <span class="k">while</span> (slowestPossibleSpeed &lt; fastestPossibleSpeed) {
+        <span class="k">int</span> candidateSpeed = slowestPossibleSpeed + (fastestPossibleSpeed - slowestPossibleSpeed) / <span class="n">2</span>;
+ 
+        <span class="k">if</span> (canFinishAllPilesInTime(bananaPiles, hoursAvailable, candidateSpeed)) {
+            <span class="c">// this speed works -&gt; try an even slower (smaller) speed</span>
+            fastestPossibleSpeed = candidateSpeed;
+        } <span class="k">else</span> {
+            <span class="c">// too slow -&gt; need a faster speed</span>
+            slowestPossibleSpeed = candidateSpeed + <span class="n">1</span>;
+        }
+    }
+    <span class="k">return</span> slowestPossibleSpeed;
+}
+ 
+<span class="k">boolean</span> canFinishAllPilesInTime(<span class="k">int</span>[] bananaPiles, <span class="k">int</span> hoursAvailable, <span class="k">int</span> eatingSpeed) {
+    <span class="k">long</span> totalHoursNeeded = <span class="n">0</span>;
+    <span class="k">for</span> (<span class="k">int</span> pileSize : bananaPiles) {
+        <span class="c">// ceiling division: hours needed to finish this pile at the given speed</span>
+        totalHoursNeeded += (pileSize + eatingSpeed - <span class="n">1</span>) / eatingSpeed;
+    }
+    <span class="k">return</span> totalHoursNeeded &lt;= hoursAvailable;
+}</code></pre>
+<p>Practice: Koko Eating Bananas, Capacity to Ship Packages Within D Days, Minimum Number of Days to Make m Bouquets, Split Array Largest Sum.</p>
+<h1 id="14-tree-bfs-level-order-traversal-13">14. Tree BFS (Level Order Traversal)</h1>
+<p>Tree BFS, also called level-order traversal, visits every node of a binary tree one depth level at a time — all nodes at depth 0 first, then all nodes at depth 1, then depth 2, and so on. It&#x27;s the tree-specific application of the general BFS idea, and it&#x27;s the natural approach whenever a problem&#x27;s answer depends on the tree&#x27;s level structure: printing the tree row by row, finding the minimum depth, computing the average value at each level, or finding the rightmost node visible from each level (right side view).</p>
+<p>The mechanism is nearly identical to graph BFS, but simplified because a tree has no cycles and no need for a visited set — each node has exactly one parent, so there&#x27;s no risk of revisiting it. You use a queue, starting with just the root node inside it. Then you repeatedly process the queue in &#x27;rounds&#x27;: at the start of each round, you record the current queue size (this tells you exactly how many nodes belong to the current level), then you dequeue that many nodes one by one, process each one, and enqueue their children. Because you captured the level&#x27;s size before enqueueing any children, you know precisely when one level ends and the next begins — this is the key trick that lets you separate the output level by level rather than getting one flat, undifferentiated list.</p>
+<p>For simpler tasks where you only need to know something about the deepest or widest level (like &#x27;minimum depth,&#x27; which is the first leaf node BFS reaches), you don&#x27;t even need to track level boundaries explicitly — you can simply return as soon as you find what you&#x27;re looking for, since BFS guarantees it reaches shallower nodes before deeper ones.</p>
+<p>Recognize tree BFS whenever a problem explicitly mentions &#x27;level,&#x27; &#x27;depth,&#x27; &#x27;row,&#x27; or asks for the shortest path from the root to some target node in a tree (since BFS is guaranteed to find the node at minimum depth first, just like it finds the shortest path first in a general graph).</p>
+<h2 id="how-it-works-visually-14">How it works — visually</h2>
+<figure><img src="../assets/img/09-leetcode-patterns-14.png" alt="Diagram"></figure>
+<h2 id="java-pseudocode-14">Java pseudocode</h2>
+<h3 id="binary-tree-level-order-traversal-14">Binary Tree Level Order Traversal <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/binary-tree-level-order-traversal/" target="_blank" rel="noopener">Binary Tree Level Order Traversal &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>Given the rootNode of a binary tree, return the level order traversal of its nodes&#x27; values (i.e., from left to right, level by level). Example: rootNode represents [3,9,20,null,null,15,7] -&gt; answer is [[3],[9,20],[15,7]].</div>
+<pre><code><span class="t">List</span>&lt;<span class="t">List</span>&lt;<span class="t">Integer</span>&gt;&gt; traverseByLevel(<span class="t">TreeNode</span> rootNode) {
+    <span class="t">List</span>&lt;<span class="t">List</span>&lt;<span class="t">Integer</span>&gt;&gt; resultByLevel = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
+    <span class="k">if</span> (rootNode == <span class="k">null</span>) <span class="k">return</span> resultByLevel;
+ 
+    <span class="t">Queue</span>&lt;<span class="t">TreeNode</span>&gt; nodesToVisit = <span class="k">new</span> <span class="t">LinkedList</span>&lt;&gt;();
+    nodesToVisit.offer(rootNode);
+ 
+    <span class="k">while</span> (!nodesToVisit.isEmpty()) {
+        <span class="k">int</span> nodesAtThisLevel = nodesToVisit.size(); <span class="c">// captured BEFORE enqueueing children</span>
+        <span class="t">List</span>&lt;<span class="t">Integer</span>&gt; currentLevelValues = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
+ 
+        <span class="k">for</span> (<span class="k">int</span> count = <span class="n">0</span>; count &lt; nodesAtThisLevel; count++) {
+            <span class="t">TreeNode</span> currentNode = nodesToVisit.poll();
+            currentLevelValues.add(currentNode.val);
+            <span class="k">if</span> (currentNode.left != <span class="k">null</span>) nodesToVisit.offer(currentNode.left);
+            <span class="k">if</span> (currentNode.right != <span class="k">null</span>) nodesToVisit.offer(currentNode.right);
+        }
+        resultByLevel.add(currentLevelValues);
+    }
+    <span class="k">return</span> resultByLevel;
+}</code></pre>
+<h3 id="minimum-depth-of-binary-tree-14">Minimum Depth of Binary Tree <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/minimum-depth-of-binary-tree/" target="_blank" rel="noopener">Minimum Depth Of Binary Tree &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>Given a binary tree, find its minimum depth: the number of nodes along the shortest path from the root node down to the nearest leaf node. Example: rootNode represents [3,9,20,null,null,15,7] -&gt; answer is 2.</div>
+<pre><code><span class="k">int</span> findMinimumTreeDepth(<span class="t">TreeNode</span> rootNode) {
+    <span class="k">if</span> (rootNode == <span class="k">null</span>) <span class="k">return</span> <span class="n">0</span>;
+ 
+    <span class="t">Queue</span>&lt;<span class="t">TreeNode</span>&gt; nodesToVisit = <span class="k">new</span> <span class="t">LinkedList</span>&lt;&gt;();
+    nodesToVisit.offer(rootNode);
+    <span class="k">int</span> currentDepth = <span class="n">1</span>;
+ 
+    <span class="k">while</span> (!nodesToVisit.isEmpty()) {
+        <span class="k">int</span> nodesAtThisLevel = nodesToVisit.size();
+        <span class="k">for</span> (<span class="k">int</span> count = <span class="n">0</span>; count &lt; nodesAtThisLevel; count++) {
+            <span class="t">TreeNode</span> currentNode = nodesToVisit.poll();
+ 
+            <span class="c">// BFS guarantees the FIRST leaf we reach is at the minimum depth</span>
+            <span class="k">if</span> (currentNode.left == <span class="k">null</span> &amp;&amp; currentNode.right == <span class="k">null</span>) {
+                <span class="k">return</span> currentDepth;
+            }
+            <span class="k">if</span> (currentNode.left != <span class="k">null</span>) nodesToVisit.offer(currentNode.left);
+            <span class="k">if</span> (currentNode.right != <span class="k">null</span>) nodesToVisit.offer(currentNode.right);
+        }
+        currentDepth++;
+    }
+    <span class="k">return</span> currentDepth;
+}</code></pre>
+<p>Practice: Binary Tree Level Order Traversal, Minimum Depth of Binary Tree, Binary Tree Right Side View, Average of Levels in Binary Tree.</p>
+<h1 id="15-tree-dfs-recursive-traversal-14">15. Tree DFS (Recursive Traversal)</h1>
+<p>Tree DFS explores a binary tree by diving as deep as possible down one branch before backtracking to try another, using the natural recursive structure of the tree itself. While tree BFS is ideal for level-based questions, tree DFS is the default choice for problems involving paths from root to leaf, aggregating values across a subtree, or computing structural properties like height, diameter, or balance — because these properties are naturally defined in terms of &#x27;the answer for this node, given the answers for its children,&#x27; which is exactly what recursion expresses.</p>
+<p>The mechanism relies on the call stack instead of an explicit queue: a recursive function is called on the root, and immediately calls itself on the left child, and then the right child (or in whatever order the problem requires). Each recursive call fully finishes — meaning it explores its entire subtree — before control returns to its caller. There are three canonical orderings, distinguished by WHEN you process the current node relative to its children: pre-order processes the node before recursing into children (useful for copying or serializing a tree top-down), in-order processes the left child, then the node, then the right child (useful for binary search trees, since this produces values in sorted order), and post-order processes both children before the node itself (useful when a node&#x27;s answer depends on results already computed for its children, like height or diameter).</p>
+<p>A common pattern within tree DFS is passing extra state down through recursive calls, such as the running sum on the path from the root (&#x27;Path Sum&#x27;), or having each recursive call RETURN a value that the parent combines with its sibling&#x27;s result, such as returning the height of a subtree so the parent can compute its own height as 1 + max(left height, right height). This return-value-composition style is what makes problems like &#x27;Diameter of Binary Tree&#x27; solvable in a single pass, since the diameter at any node can be computed the moment both of its children&#x27;s heights are known.</p>
+<p>Recognize tree DFS whenever a problem talks about root-to-leaf paths, subtree properties, or any computation where a node&#x27;s answer is naturally built from its children&#x27;s answers.</p>
+<h2 id="how-it-works-visually-15">How it works — visually</h2>
+<figure><img src="../assets/img/09-leetcode-patterns-15.png" alt="Diagram"></figure>
+<h2 id="java-pseudocode-15">Java pseudocode</h2>
+<h3 id="path-sum-root-to-leaf-does-a-path-sum-to-target-15">Path Sum (root-to-leaf, does a path sum to target?) <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/path-sum/" target="_blank" rel="noopener">Path Sum &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>Given the rootNode of a binary tree and an integer targetSum, return true if the tree has a root-to-leaf path such that adding up all the values along the path equals targetSum, otherwise return false. Example: rootNode represents [5,4,8,11,null,13,4,7,2,null,null,null,1], targetSum = 22 -&gt; answer is true.</div>
+<pre><code><span class="k">boolean</span> hasRootToLeafPathSum(<span class="t">TreeNode</span> currentNode, <span class="k">int</span> remainingTargetSum) {
+    <span class="k">if</span> (currentNode == <span class="k">null</span>) <span class="k">return</span> <span class="k">false</span>;
+ 
+    <span class="c">// leaf node reached -&gt; check if this path&#x27;s total matches the target</span>
+    <span class="k">if</span> (currentNode.left == <span class="k">null</span> &amp;&amp; currentNode.right == <span class="k">null</span>) {
+        <span class="k">return</span> currentNode.val == remainingTargetSum;
+    }
+ 
+    <span class="k">int</span> updatedRemainingSum = remainingTargetSum - currentNode.val;
+    <span class="c">// try the left subtree OR the right subtree</span>
+    <span class="k">return</span> hasRootToLeafPathSum(currentNode.left, updatedRemainingSum)
+        || hasRootToLeafPathSum(currentNode.right, updatedRemainingSum);
+}</code></pre>
+<h3 id="diameter-of-binary-tree-post-order-return-value-composition-15">Diameter of Binary Tree (post-order, return-value composition) <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/diameter-of-binary-tree/" target="_blank" rel="noopener">Diameter Of Binary Tree &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>Given the rootNode of a binary tree, return the length (in number of edges) of the diameter of the tree, defined as the length of the longest path between any two nodes (this path may or may not pass through the root). Example: rootNode represents [1,2,3,4,5] -&gt; answer is 3.</div>
+<pre><code><span class="k">int</span> largestDiameterFound = <span class="n">0</span>;
+ 
+<span class="k">int</span> computeTreeDiameter(<span class="t">TreeNode</span> rootNode) {
+    calculateSubtreeHeight(rootNode);
+    <span class="k">return</span> largestDiameterFound;
+}
+ 
+<span class="k">int</span> calculateSubtreeHeight(<span class="t">TreeNode</span> currentNode) {
+    <span class="k">if</span> (currentNode == <span class="k">null</span>) <span class="k">return</span> <span class="n">0</span>;
+ 
+    <span class="c">// post-order: fully compute both children&#x27;s heights before using them</span>
+    <span class="k">int</span> leftSubtreeHeight = calculateSubtreeHeight(currentNode.left);
+    <span class="k">int</span> rightSubtreeHeight = calculateSubtreeHeight(currentNode.right);
+ 
+    <span class="c">// the longest path THROUGH this node = combined height of both subtrees</span>
+    largestDiameterFound = <span class="t">Math</span>.max(largestDiameterFound, leftSubtreeHeight + rightSubtreeHeight);
+ 
+    <span class="c">// return this node&#x27;s own height to its parent</span>
+    <span class="k">return</span> <span class="n">1</span> + <span class="t">Math</span>.max(leftSubtreeHeight, rightSubtreeHeight);
+}</code></pre>
+<p>Practice: Path Sum, Diameter of Binary Tree, Maximum Depth of Binary Tree, Invert Binary Tree.</p>
+<h1 id="16-backtracking-subsets-permutations-combinations-15">16. Backtracking (Subsets, Permutations, Combinations)</h1>
+<p>Backtracking is a systematic way of exploring every possible combination of choices by building a solution incrementally, and abandoning (&#x27;backtracking out of&#x27;) a path as soon as it&#x27;s known to be invalid or once it&#x27;s been fully explored. It&#x27;s the standard approach for problems that ask you to generate all subsets, all permutations, all valid combinations, or all solutions satisfying some constraint (like N-Queens or Sudoku).</p>
+<p>The mechanism is recursive, and it follows a repeating three-step rhythm at every node of an implicit decision tree: choose, explore, unchoose. First, you make a choice — for example, deciding to include the current number in your subset, or placing a queen on a particular square. Second, you recursively explore everything that follows from that choice, treating the rest of the problem as a smaller version of itself. Third, once that recursive branch is fully explored, you undo the choice you made (remove the number from the subset, remove the queen from the board) before trying the next alternative. This &#x27;undo&#x27; step is what makes it backtracking rather than plain recursion — it lets you reuse the same partial solution and call stack to try a completely different path, without needing to build every path from scratch.</p>
+<p>For &#x27;Subsets,&#x27; at each element you have exactly two choices: include it or don&#x27;t. This naturally forms a binary decision tree with 2^n leaves, each leaf representing one complete subset. For &#x27;Permutations,&#x27; the choice at each level is which unused element to place next, and you track which elements have already been used so you don&#x27;t repeat them within the same permutation. Many backtracking problems add a pruning step: if a partial solution can already be proven invalid (e.g., a queen under attack, a sum that&#x27;s already exceeded the target), you stop exploring that branch immediately rather than continuing all the way down — this pruning is often what makes an otherwise exponential search practically fast enough.</p>
+<p>Recognize backtracking whenever a problem says &#x27;find all possible...&#x27; or &#x27;generate every...&#x27; and the answer requires exploring a branching set of choices, especially when some choices can be eliminated early through constraints.</p>
+<h2 id="how-it-works-visually-16">How it works — visually</h2>
+<figure><img src="../assets/img/09-leetcode-patterns-16.png" alt="Diagram"></figure>
+<h2 id="java-pseudocode-16">Java pseudocode</h2>
+<h3 id="subsets-16">Subsets <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/subsets/" target="_blank" rel="noopener">Subsets &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>Given an integer array distinctNumbers of unique elements, return all possible subsets (the power set). The solution set must not contain duplicate subsets. Example: distinctNumbers = [1,2,3] -&gt; answer includes [], [1], [2], [3], [1,2], [1,3], [2,3], [1,2,3].</div>
+<pre><code><span class="t">List</span>&lt;<span class="t">List</span>&lt;<span class="t">Integer</span>&gt;&gt; generateAllSubsets(<span class="k">int</span>[] distinctNumbers) {
+    <span class="t">List</span>&lt;<span class="t">List</span>&lt;<span class="t">Integer</span>&gt;&gt; allSubsetsFound = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
+    exploreSubsetChoices(distinctNumbers, <span class="n">0</span>, <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;(), allSubsetsFound);
+    <span class="k">return</span> allSubsetsFound;
+}
+ 
+<span class="k">void</span> exploreSubsetChoices(<span class="k">int</span>[] distinctNumbers, <span class="k">int</span> startIndex,
+                           <span class="t">List</span>&lt;<span class="t">Integer</span>&gt; currentSubset, <span class="t">List</span>&lt;<span class="t">List</span>&lt;<span class="t">Integer</span>&gt;&gt; allSubsetsFound) {
+    <span class="c">// every partial path (including empty) is itself a valid subset</span>
+    allSubsetsFound.add(<span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;(currentSubset));
+ 
+    <span class="k">for</span> (<span class="k">int</span> index = startIndex; index &lt; distinctNumbers.length; index++) {
+        currentSubset.add(distinctNumbers[index]);                        <span class="c">// choose</span>
+        exploreSubsetChoices(distinctNumbers, index + <span class="n">1</span>, currentSubset, allSubsetsFound); <span class="c">// explore</span>
+        currentSubset.remove(currentSubset.size() - <span class="n">1</span>);                   <span class="c">// un-choose (backtrack)</span>
+    }
+}</code></pre>
+<h3 id="permutations-16">Permutations <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/permutations/" target="_blank" rel="noopener">Permutations &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>Given an array distinctNumbers of distinct integers, return all the possible permutations. You can return the answer in any order. Example: distinctNumbers = [1,2,3] -&gt; answer includes [1,2,3], [1,3,2], [2,1,3], [2,3,1], [3,1,2], [3,2,1].</div>
+<pre><code><span class="t">List</span>&lt;<span class="t">List</span>&lt;<span class="t">Integer</span>&gt;&gt; generateAllPermutations(<span class="k">int</span>[] distinctNumbers) {
+    <span class="t">List</span>&lt;<span class="t">List</span>&lt;<span class="t">Integer</span>&gt;&gt; allPermutationsFound = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
+    <span class="k">boolean</span>[] valueAlreadyUsed = <span class="k">new</span> <span class="k">boolean</span>[distinctNumbers.length];
+    exploreOrderingChoices(distinctNumbers, <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;(), valueAlreadyUsed, allPermutationsFound);
+    <span class="k">return</span> allPermutationsFound;
+}
+ 
+<span class="k">void</span> exploreOrderingChoices(<span class="k">int</span>[] distinctNumbers, <span class="t">List</span>&lt;<span class="t">Integer</span>&gt; currentOrdering,
+                             <span class="k">boolean</span>[] valueAlreadyUsed, <span class="t">List</span>&lt;<span class="t">List</span>&lt;<span class="t">Integer</span>&gt;&gt; allPermutationsFound) {
+    <span class="k">if</span> (currentOrdering.size() == distinctNumbers.length) {
+        allPermutationsFound.add(<span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;(currentOrdering));
+        <span class="k">return</span>;
+    }
+    <span class="k">for</span> (<span class="k">int</span> index = <span class="n">0</span>; index &lt; distinctNumbers.length; index++) {
+        <span class="k">if</span> (valueAlreadyUsed[index]) <span class="k">continue</span>; <span class="c">// skip values already placed in this ordering</span>
+ 
+        valueAlreadyUsed[index] = <span class="k">true</span>;
+        currentOrdering.add(distinctNumbers[index]);
+ 
+        exploreOrderingChoices(distinctNumbers, currentOrdering, valueAlreadyUsed, allPermutationsFound);
+ 
+        currentOrdering.remove(currentOrdering.size() - <span class="n">1</span>); <span class="c">// undo</span>
+        valueAlreadyUsed[index] = <span class="k">false</span>;                    <span class="c">// undo</span>
+    }
+}</code></pre>
+<p>Practice: Subsets, Permutations, Combination Sum, Word Search.</p>
+<h1 id="17-breadth-first-search-graphs-grids-16">17. Breadth-First Search (Graphs &amp; Grids)</h1>
+<p>Breadth-First Search explores a graph or grid one &#x27;layer&#x27; at a time, visiting every node at distance 1 from the start before moving on to any node at distance 2, then distance 3, and so on. This layer-by-layer exploration is what makes BFS the go-to algorithm whenever a problem asks for the shortest path in an unweighted graph, or the minimum number of steps to reach a goal — because the very first time BFS reaches any node, it&#x27;s guaranteed to have done so via the shortest possible path.</p>
+<p>The mechanism relies on a queue (first-in, first-out) rather than a stack. You start by adding the source node to the queue and marking it visited. Then you repeatedly remove a node from the front of the queue, look at all of its unvisited neighbors, mark each of them visited, and add them to the back of the queue. Because the queue processes nodes in the exact order they were discovered, all nodes at the current distance get fully processed before any node at the next distance is even looked at — this is what creates the layer-by-layer expansion.</p>
+<p>On a grid (like a maze or an image), BFS works identically, except &#x27;neighbors&#x27; means the up/down/left/right (or sometimes diagonal) adjacent cells instead of explicit graph edges. This makes BFS the natural fit for problems like &#x27;shortest path in a binary maze,&#x27; &#x27;rotting oranges&#x27; (how long until every orange rots, spreading level by level), or &#x27;number of islands&#x27; when you want to explore a connected region.</p>
+<p>A key implementation detail is marking nodes as visited at the moment you ADD them to the queue, not when you later remove and process them. If you wait until processing to mark visited, the same node can be added to the queue multiple times by different neighbors before it&#x27;s ever processed, wasting time and potentially causing incorrect distance calculations. Recognize BFS whenever a problem involves an unweighted graph or grid and asks for shortest distance, minimum steps, or level-by-level processing (like printing a binary tree level by level).</p>
+<h2 id="how-it-works-visually-17">How it works — visually</h2>
+<figure><img src="../assets/img/09-leetcode-patterns-17.png" alt="Diagram"></figure>
+<h2 id="java-pseudocode-17">Java pseudocode</h2>
+<h3 id="shortest-path-in-binary-matrix-grid-bfs-17">Shortest Path in Binary Matrix (grid BFS) <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/shortest-path-in-binary-matrix/" target="_blank" rel="noopener">Shortest Path In Binary Matrix &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>Given an n x n binary grid where 0 means a clear cell and 1 means a blocked cell, find the length of the shortest clear path from the top-left cell to the bottom-right cell, moving in any of 8 directions. Return -1 if no such path exists. Example: gridCells = [[0,1],[1,0]] -&gt; answer is 2.</div>
+<pre><code><span class="k">int</span> findShortestPathInGrid(<span class="k">int</span>[][] gridCells) {
+    <span class="k">int</span> gridSize = gridCells.length;
+    <span class="k">if</span> (gridCells[<span class="n">0</span>][<span class="n">0</span>] == <span class="n">1</span> || gridCells[gridSize - <span class="n">1</span>][gridSize - <span class="n">1</span>] == <span class="n">1</span>) <span class="k">return</span> -<span class="n">1</span>;
+ 
+    <span class="t">Queue</span>&lt;<span class="k">int</span>[]&gt; cellsToVisit = <span class="k">new</span> <span class="t">LinkedList</span>&lt;&gt;();
+    cellsToVisit.offer(<span class="k">new</span> <span class="k">int</span>[]{<span class="n">0</span>, <span class="n">0</span>});
+    gridCells[<span class="n">0</span>][<span class="n">0</span>] = <span class="n">1</span>; <span class="c">// mark visited by overwriting (or use a separate visited[][] array)</span>
+    <span class="k">int</span> stepsTaken = <span class="n">1</span>;
+ 
+    <span class="c">// all 8 possible movement directions: up/down/left/right and 4 diagonals</span>
+    <span class="k">int</span>[][] movementDirections = {{-<span class="n">1</span>,-<span class="n">1</span>},{-<span class="n">1</span>,<span class="n">0</span>},{-<span class="n">1</span>,<span class="n">1</span>},{<span class="n">0</span>,-<span class="n">1</span>},{<span class="n">0</span>,<span class="n">1</span>},{<span class="n">1</span>,-<span class="n">1</span>},{<span class="n">1</span>,<span class="n">0</span>},{<span class="n">1</span>,<span class="n">1</span>}};
+ 
+    <span class="k">while</span> (!cellsToVisit.isEmpty()) {
+        <span class="k">int</span> cellsAtThisStep = cellsToVisit.size();
+ 
+        <span class="k">for</span> (<span class="k">int</span> count = <span class="n">0</span>; count &lt; cellsAtThisStep; count++) {
+            <span class="k">int</span>[] currentCell = cellsToVisit.poll();
+            <span class="k">int</span> currentRow = currentCell[<span class="n">0</span>];
+            <span class="k">int</span> currentColumn = currentCell[<span class="n">1</span>];
+ 
+            <span class="k">if</span> (currentRow == gridSize - <span class="n">1</span> &amp;&amp; currentColumn == gridSize - <span class="n">1</span>) {
+                <span class="k">return</span> stepsTaken; <span class="c">// reached the destination</span>
+            }
+ 
+            <span class="k">for</span> (<span class="k">int</span>[] direction : movementDirections) {
+                <span class="k">int</span> neighborRow = currentRow + direction[<span class="n">0</span>];
+                <span class="k">int</span> neighborColumn = currentColumn + direction[<span class="n">1</span>];
+ 
+                <span class="k">boolean</span> isInsideGrid = neighborRow &gt;= <span class="n">0</span> &amp;&amp; neighborRow &lt; gridSize
+                                     &amp;&amp; neighborColumn &gt;= <span class="n">0</span> &amp;&amp; neighborColumn &lt; gridSize;
+ 
+                <span class="k">if</span> (isInsideGrid &amp;&amp; gridCells[neighborRow][neighborColumn] == <span class="n">0</span>) {
+                    gridCells[neighborRow][neighborColumn] = <span class="n">1</span>; <span class="c">// mark visited when enqueued</span>
+                    cellsToVisit.offer(<span class="k">new</span> <span class="k">int</span>[]{neighborRow, neighborColumn});
+                }
+            }
+        }
+        stepsTaken++;
+    }
+    <span class="k">return</span> -<span class="n">1</span>; <span class="c">// destination unreachable</span>
+}</code></pre>
+<p>Practice: Number of Islands, Rotting Oranges, Word Ladder, Shortest Path in Binary Matrix.</p>
+<h1 id="18-topological-sort-17">18. Topological Sort</h1>
+<p>Topological sort produces a linear ordering of the nodes in a directed graph such that for every directed edge from node A to node B, A appears before B in the ordering. This only makes sense for Directed Acyclic Graphs (DAGs) — graphs with no cycles — because a cycle would create a contradiction (A must come before B, but B must also come before A, which is impossible to satisfy).</p>
+<p>This pattern is the natural model for any &#x27;dependency ordering&#x27; problem: course prerequisites (you can&#x27;t take course B until you&#x27;ve finished course A), build systems (compile module A before module B if B depends on A), or task scheduling. The two standard implementations are Kahn&#x27;s Algorithm (BFS-based) and DFS-based topological sort.</p>
+<p>Kahn&#x27;s Algorithm works by first computing the &#x27;in-degree&#x27; of every node — the number of edges pointing into it (i.e., the number of unfinished prerequisites). Any node with an in-degree of zero has no dependencies and can safely go first, so you start by adding all such nodes to a queue. You then repeatedly remove a node from the queue, add it to your result ordering, and &#x27;remove&#x27; its outgoing edges by decrementing the in-degree of each of its neighbors. Whenever a neighbor&#x27;s in-degree drops to zero, it means all of its prerequisites are now satisfied, so you add it to the queue too. If you manage to process every node this way, you have a valid topological order; if some nodes never reach in-degree zero, that means a cycle exists and no valid ordering is possible.</p>
+<p>The DFS-based alternative explores the graph depth-first, and adds each node to the front of the result list only after all of its descendants have been fully explored (this is called post-order). Since a node&#x27;s dependencies are guaranteed to finish exploring before the node itself does, prepending in post-order naturally produces a valid topological ordering. Recognize this pattern whenever a problem describes prerequisites, dependencies, or &#x27;must happen before&#x27; relationships between discrete tasks or items.</p>
+<h2 id="how-it-works-visually-18">How it works — visually</h2>
+<figure><img src="../assets/img/09-leetcode-patterns-18.png" alt="Diagram"></figure>
+<h2 id="java-pseudocode-18">Java pseudocode</h2>
+<h3 id="course-schedule-detect-if-ordering-is-possible-18">Course Schedule (detect if ordering is possible) <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/course-schedule/" target="_blank" rel="noopener">Course Schedule &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>There are totalCourses courses labeled 0 to totalCourses-1. You are given an array coursePrerequisites where coursePrerequisites[i] = [course, prerequisite] means you must take prerequisite before course. Return true if you can finish all courses, otherwise false. Example: totalCourses = 2, coursePrerequisites = [[1,0]] -&gt; answer is true.</div>
+<pre><code><span class="k">boolean</span> canFinishAllCourses(<span class="k">int</span> totalCourses, <span class="k">int</span>[][] coursePrerequisites) {
+    <span class="t">List</span>&lt;<span class="t">List</span>&lt;<span class="t">Integer</span>&gt;&gt; courseGraph = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
+    <span class="k">for</span> (<span class="k">int</span> course = <span class="n">0</span>; course &lt; totalCourses; course++) {
+        courseGraph.add(<span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;());
+    }
+ 
+    <span class="c">// inDegreeCount[course] = number of unfinished prerequisites for that course</span>
+    <span class="k">int</span>[] inDegreeCount = <span class="k">new</span> <span class="k">int</span>[totalCourses];
+    <span class="k">for</span> (<span class="k">int</span>[] prerequisitePair : coursePrerequisites) {
+        <span class="k">int</span> courseToTake = prerequisitePair[<span class="n">0</span>];
+        <span class="k">int</span> requiredCourse = prerequisitePair[<span class="n">1</span>];
+        courseGraph.get(requiredCourse).add(courseToTake);
+        inDegreeCount[courseToTake]++;
+    }
+ 
+    <span class="c">// start with every course that has NO prerequisites</span>
+    <span class="t">Queue</span>&lt;<span class="t">Integer</span>&gt; readyToTakeQueue = <span class="k">new</span> <span class="t">LinkedList</span>&lt;&gt;();
+    <span class="k">for</span> (<span class="k">int</span> course = <span class="n">0</span>; course &lt; totalCourses; course++) {
+        <span class="k">if</span> (inDegreeCount[course] == <span class="n">0</span>) readyToTakeQueue.offer(course);
+    }
+ 
+    <span class="k">int</span> coursesCompleted = <span class="n">0</span>;
+    <span class="k">while</span> (!readyToTakeQueue.isEmpty()) {
+        <span class="k">int</span> currentCourse = readyToTakeQueue.poll();
+        coursesCompleted++;
+ 
+        <span class="c">// &quot;completing&quot; this course removes it as a prerequisite for its dependents</span>
+        <span class="k">for</span> (<span class="k">int</span> dependentCourse : courseGraph.get(currentCourse)) {
+            inDegreeCount[dependentCourse]--;
+            <span class="k">if</span> (inDegreeCount[dependentCourse] == <span class="n">0</span>) {
+                readyToTakeQueue.offer(dependentCourse);
+            }
+        }
+    }
+    <span class="c">// if not all courses were completed, a cycle blocked some of them</span>
+    <span class="k">return</span> coursesCompleted == totalCourses;
+}</code></pre>
+<p>Practice: Course Schedule, Course Schedule II, Alien Dictionary, Find Eventual Safe States.</p>
+<h1 id="19-union-find-disjoint-set-union-18">19. Union-Find (Disjoint Set Union)</h1>
+<p>Union-Find, also called Disjoint Set Union (DSU), is a data structure that efficiently tracks a collection of elements partitioned into disjoint (non-overlapping) groups, and supports two operations extremely fast: checking whether two elements belong to the same group, and merging two groups into one. It&#x27;s the ideal tool for problems about connectivity — determining whether a graph has cycles, counting connected components, or grouping items based on pairwise relationships.</p>
+<p>The structure works using a &#x27;parent&#x27; array, where each element initially points to itself, meaning every element starts as its own group of one. The find(x) operation follows parent pointers from x upward until it reaches a node that points to itself — this final node is the &#x27;representative&#x27; or &#x27;root&#x27; of x&#x27;s group. Two elements are in the same group if and only if find() returns the same root for both. The union(x, y) operation merges two groups by finding the root of each, and then making one root point to the other, effectively merging the two trees into one.</p>
+<p>Two optimizations make this structure nearly O(1) per operation in practice, despite looking like it could require O(n) tree traversals. Path compression flattens the tree during every find() call — as you walk from x up to the root, you make every node along that path point directly to the root, so future lookups for those same nodes are instant. Union by rank (or size) ensures that when merging two groups, the smaller tree is always attached under the larger one&#x27;s root, preventing the tree from becoming a long, inefficient chain. Together, these optimizations bring the amortized time complexity down to nearly constant time per operation, formally O(alpha(n)) where alpha is the extremely slow-growing inverse Ackermann function.</p>
+<p>Recognize Union-Find whenever a problem involves grouping items based on pairwise &#x27;these two belong together&#x27; relationships, detecting cycles in an undirected graph, or incrementally answering &#x27;are these two connected&#x27; queries as edges are added one at a time.</p>
+<h2 id="how-it-works-visually-19">How it works — visually</h2>
+<figure><img src="../assets/img/09-leetcode-patterns-19.png" alt="Diagram"></figure>
+<h2 id="java-pseudocode-19">Java pseudocode</h2>
+<h3 id="union-find-with-path-compression-and-union-by-rank-19">Union-Find with path compression and union by rank</h3>
+<div class="callout"><strong>Problem: </strong>Design a data structure that supports two operations on a set of totalElements elements (numbered 0 to totalElements-1): union(firstElement, secondElement) merges the groups containing the two elements, and connected(firstElement, secondElement) returns true if they are in the same group. Used to solve problems like counting connected components or detecting cycles.</div>
+<pre><code><span class="k">class</span> <span class="t">DisjointSetUnion</span> {
+    <span class="k">int</span>[] parentOf;
+    <span class="k">int</span>[] treeRank;
+ 
+    <span class="t">DisjointSetUnion</span>(<span class="k">int</span> totalElements) {
+        parentOf = <span class="k">new</span> <span class="k">int</span>[totalElements];
+        treeRank = <span class="k">new</span> <span class="k">int</span>[totalElements];
+        <span class="k">for</span> (<span class="k">int</span> element = <span class="n">0</span>; element &lt; totalElements; element++) {
+            parentOf[element] = element; <span class="c">// every element starts as its own group&#x27;s root</span>
+        }
+    }
+ 
+    <span class="k">int</span> findGroupRoot(<span class="k">int</span> element) {
+        <span class="k">if</span> (parentOf[element] != element) {
+            <span class="c">// path compression: point directly to the root for faster future lookups</span>
+            parentOf[element] = findGroupRoot(parentOf[element]);
+        }
+        <span class="k">return</span> parentOf[element];
+    }
+ 
+    <span class="k">void</span> unionGroups(<span class="k">int</span> firstElement, <span class="k">int</span> secondElement) {
+        <span class="k">int</span> firstRoot = findGroupRoot(firstElement);
+        <span class="k">int</span> secondRoot = findGroupRoot(secondElement);
+        <span class="k">if</span> (firstRoot == secondRoot) <span class="k">return</span>; <span class="c">// already in the same group</span>
+ 
+        <span class="c">// union by rank: attach the smaller tree under the bigger tree&#x27;s root</span>
+        <span class="k">if</span> (treeRank[firstRoot] &lt; treeRank[secondRoot]) {
+            parentOf[firstRoot] = secondRoot;
+        } <span class="k">else</span> <span class="k">if</span> (treeRank[firstRoot] &gt; treeRank[secondRoot]) {
+            parentOf[secondRoot] = firstRoot;
+        } <span class="k">else</span> {
+            parentOf[secondRoot] = firstRoot;
+            treeRank[firstRoot]++;
+        }
+    }
+ 
+    <span class="k">boolean</span> areConnected(<span class="k">int</span> firstElement, <span class="k">int</span> secondElement) {
+        <span class="k">return</span> findGroupRoot(firstElement) == findGroupRoot(secondElement);
+    }
+}</code></pre>
+<p>Practice: Number of Connected Components, Redundant Connection, Accounts Merge, Graph Valid Tree.</p>
+<h1 id="20-dynamic-programming-1d-2d-19">20. Dynamic Programming (1D &amp; 2D)</h1>
+<p>Dynamic Programming (DP) is a technique for solving problems by breaking them into overlapping subproblems, solving each subproblem exactly once, and storing (caching) its result so it never needs to be recomputed. This is fundamentally different from plain recursion or divide-and-conquer, where the same subproblem can be solved from scratch many times, leading to exponential blowup. DP applies specifically when a problem has two properties: optimal substructure (the best solution to the whole problem can be built from best solutions to its subproblems) and overlapping subproblems (the same smaller subproblem gets encountered repeatedly along different paths).</p>
+<p>There are two equivalent ways to implement DP. Top-down (memoization) keeps the natural recursive structure of the problem, but adds a cache (usually a HashMap or array) that stores the result of each subproblem the first time it&#x27;s computed; every subsequent call for the same inputs just returns the cached value instantly instead of recomputing. Bottom-up (tabulation) flips the direction: instead of starting from the big problem and recursing down, you start by solving the smallest subproblems first, store their answers in a table (usually an array), and iteratively build up to the final answer using previously computed table values. Bottom-up is often preferred in interviews because it avoids recursion overhead and stack depth limits.</p>
+<p>The classic introductory example is &#x27;Climbing Stairs&#x27;: the number of ways to reach step n depends only on the number of ways to reach step n-1 and step n-2 (since you can take 1 or 2 steps at a time), so waysToReach[n] = waysToReach[n-1] + waysToReach[n-2]. This is a 1D DP because the state is described by a single variable (the current step). 2D DP extends this to problems where the state depends on two variables — for example, &#x27;Longest Common Subsequence&#x27; between two strings needs a state of (index in string A, index in string B), so you build a 2D table where the entry at row i, column j represents the answer considering the first i characters of A and the first j characters of B.</p>
+<p>Recognize DP whenever a problem asks for an optimal value (min/max/count of ways) and a greedy or brute-force approach either gives a wrong answer or is exponentially slow due to solving the same smaller subproblem repeatedly. The core skill is identifying the &#x27;state&#x27; (what varies between subproblems) and the recurrence relation (how a state&#x27;s answer relates to smaller states&#x27; answers).</p>
+<h2 id="how-it-works-visually-20">How it works — visually</h2>
+<figure><img src="../assets/img/09-leetcode-patterns-20.png" alt="Diagram"></figure>
+<h2 id="java-pseudocode-20">Java pseudocode</h2>
+<h3 id="climbing-stairs-1d-dp-bottom-up-20">Climbing Stairs (1D DP, bottom-up) <span class="lcbar">LeetCode: <a class="lc" href="https://leetcode.com/problems/climbing-stairs/" target="_blank" rel="noopener">Climbing Stairs &#8599;</a></span></h3>
+<div class="callout"><strong>Problem: </strong>You are climbing a staircase that takes totalSteps steps to reach the top. Each time you can either climb 1 or 2 steps. In how many distinct ways can you climb to the top? Example: totalSteps = 3 -&gt; answer is 3 (the ways are 1+1+1, 1+2, 2+1).</div>
+<pre><code><span class="k">int</span> countWaysToClimbStairs(<span class="k">int</span> totalSteps) {
+    <span class="k">if</span> (totalSteps &lt;= <span class="n">2</span>) <span class="k">return</span> totalSteps;
+ 
+    <span class="c">// waysToReach[step] = number of distinct ways to reach that step</span>
+    <span class="k">int</span>[] waysToReach = <span class="k">new</span> <span class="k">int</span>[totalSteps + <span class="n">1</span>];
+    waysToReach[<span class="n">1</span>] = <span class="n">1</span>;
+    waysToReach[<span class="n">2</span>] = <span class="n">2</span>;
+ 
+    <span class="k">for</span> (<span class="k">int</span> step = <span class="n">3</span>; step &lt;= totalSteps; step++) {
+        <span class="c">// reaching &quot;step&quot; comes from either a 1-step jump from step-1,</span>
+        <span class="c">// or a 2-step jump from step-2 -- reuse both previously solved subproblems</span>
+        waysToReach[step] = waysToReach[step - <span class="n">1</span>] + waysToReach[step - <span class="n">2</span>];
+    }
+    <span class="k">return</span> waysToReach[totalSteps];
+}</code></pre>
+<p>Practice: Climbing Stairs, House Robber, Longest Common Subsequence, Coin Change.</p>
+<h1 id="how-to-use-this-guide-20">How to Use This Guide</h1>
+<ul><li>Follow the order: patterns are sequenced from easiest to hardest, and later patterns sometimes build on ideas from earlier ones (e.g. Graph BFS builds on the queue mechanics from Tree BFS; Backtracking&#x27;s recursive mindset helps with Tree DFS and DP).</li><li>Read the problem statement first and try to restate it in your own words before looking at the code — this is the single best predictor of interview success.</li><li>Study the diagram to build a visual mental model of the mechanism, not just the code.</li><li>Read every comment in the pseudocode — they explain the WHY behind each line, not just the WHAT.</li><li>Type out the Java pseudocode yourself rather than copy-pasting — muscle memory matters.</li><li>Solve the practice problems listed per pattern on LeetCode, referring back only when stuck.</li><li>Once a pattern feels automatic, most &#x27;new&#x27; interview problems will just be a remix of these 20 templates.</li></ul><div class="pager"><span><a href="08-java-interview-guide-part7.html">&larr; Java Interview Guide - Part 7</a></span><span></span></div></main></div></body></html>
